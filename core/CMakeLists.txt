@@ -5,6 +5,8 @@ set(GG_CORE_SRCS
     src/gg_battery.c
     src/gg_civil.c
     src/gg_input.c
+    src/gg_lunar.c
+    src/gg_lunar_data.c
 )
 
 if(ESP_PLATFORM)

@@ -92,14 +92,14 @@ HKO publishes the Chinese calendar for 1901-2100 ([conversion tables](https://ww
 |---|---|---|
 | Months of lunar years 1929-2100 | 2127 | 2: 2057 month 9 (new moon 2057-09-29 00:00:44.2 UTC+8, 44.2 s after midnight; HKO 28/9) and 2097 month 7 (2097-08-08 00:01:49.1, 109.2 s after; HKO 7/8) |
 | Solar terms 1929-2100 | 4128 | 2: Đại hàn 1979 (1979-01-20 23:59:54.4 UTC+8, 5.6 s before midnight; HKO 21/1) and Xuân phân 2084 (2084-03-20 00:00:47.0, 47.1 s after; HKO 19/3) |
-| Months of lunar years 1900-1928 | 347 | 3 at UTC+8 (1914 month 10, 1916 month 1, 1920 month 10, new moons 101-315 s after midnight). With Beijing mean time (`--zone china`) only 1906 month 4 differs (new moon 23:52:05 Beijing mean time, 00:06:25 UTC+8; HKO 24/4). |
+| Months of lunar years 1900-1928 | 348 | 3 at UTC+8 (1914 month 10, 1916 month 1, 1920 month 10, new moons 101-315 s after midnight). With Beijing mean time (`--zone china`) only 1906 month 4 differs (new moon 23:52:05 Beijing mean time, 00:06:25 UTC+8; HKO 24/4). |
 | Solar terms 1901-1928 | 672 | 5 at UTC+8, 6 with Beijing mean time: HKO's early terms follow neither, by up to 26 minutes |
 
 In all four exceptions from 1929 on, DE440s puts the event within two minutes of midnight, on the other side from HKO; the research found Apple's ICU calendar agreeing with DE440s on them, against HKO. None of the four is close to midnight in Hanoi time (they fall between 22:59 and 23:02 UTC+7), so they do not touch the Vietnamese tables.
 
 ### Vietnam against HKO
 
-`core/test/test_lunar.c` compares every day from January 1901 to 2100-12-31 with HKO's table. 68 months give some day a different lunar date, all listed with their reason in `core/test/data/hko_differences.csv`; the test fails if one is missing or stale. Every one is explained by the time zone:
+`core/test/test_lunar.c` compares every day from 1 January 1901 to 2100-12-31 with HKO's table; it starts on 1900-12-22, day 1 of the lunar month in progress on 1 January 1901, which `fetch_hko.py` dates from the lunar day of HKO's first row. 68 months give some day a different lunar date, all listed with their reason in `core/test/data/hko_differences.csv`; the test fails if one is missing or stale. Every one is explained by the time zone:
 
 - **Before 1929, 6 months**: the 3 Beijing-mean-time new moons above, each making one month start a day later here and the month before it a day longer.
 - **From 1968, 55 months start a day earlier in Vietnam**: the new moon falls between 23:00 and 24:00 Hanoi time, after midnight in UTC+8. Among them Tết 1968 (29/1, China 30/1), 1969 (16/2 vs 17/2), 2007 (17/2 vs 18/2), 2030 (2/2 vs 3/2) and 2053 (18/2 vs 19/2), and the leap months 8 of 1995 (24/9 vs 25/9) and 3 of 2031 (21/4 vs 22/4).

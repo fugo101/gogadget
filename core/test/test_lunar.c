@@ -496,15 +496,17 @@ static size_t load_hko(month_row_t *rows)
 }
 
 /*
- * Day by day from HKO's first month (January 1901) to 2100-12-31: every month in which
- * some day gets another lunar date than in HKO's Chinese calendar must be listed in
- * hko_differences.csv, with the reason, and every listed month must differ.
+ * Day by day from the start of the month in progress on 1901-01-01 (HKO's first file
+ * begins there) to 2100-12-31: every month in which some day gets another lunar date
+ * than in HKO's Chinese calendar must be listed in hko_differences.csv, with the reason,
+ * and every listed month must differ.
  */
 static void test_matches_hko_except_listed_differences(void)
 {
     static month_row_t hko[MAX_MONTHS], found[128];
     size_t hko_count = load_hko(hko), found_count = 0;
-    TEST_ASSERT_EQUAL(2474, hko_count);
+    TEST_ASSERT_EQUAL(2475, hko_count);
+    TEST_ASSERT_TRUE(hko[0].start <= gg_days_from_civil(1901, 1, 1)); /* all of 1901 */
 
     size_t i = 0;
     for (int32_t z = hko[0].start; z <= last_day(); z++) {

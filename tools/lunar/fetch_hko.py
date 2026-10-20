@@ -141,6 +141,15 @@ def derive(rows: list[tuple[dt.date, int, bool, int | None]]):
             if number is None:  # the first month start: months 11 and 12 before Tết
                 year = date.year - 1 if value >= 11 and date.month <= 2 else date.year
                 leap = False
+                if day is not None:
+                    # The first file opens inside a month. The lunar day of its first
+                    # row gives that month's day 1, so the comparison covers every day
+                    # of the files. The files do not say whether it is a leap month 11;
+                    # it is taken as month 11, which the test then checks against ours.
+                    first = rows[0][0] - dt.timedelta(days=rows[0][1] - 1)
+                    if value != 12 or (date - first).days not in (29, 30):
+                        raise ValueError(f"cannot date the month before {date}")
+                    months.append((year, 11, False, first))
             else:
                 if day not in (29, 30):
                     raise ValueError(f"{date}: the month before has {day} days")

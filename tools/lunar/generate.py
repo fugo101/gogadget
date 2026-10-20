@@ -556,7 +556,7 @@ def compare_months(months, events, zone, hko, first_year, last_year) -> list[str
         )
     hko_labels = {label for label, _ in hko}
     for m in months:
-        in_span = hko[0][1] <= m.start <= hko[-1][1]  # HKO starts in January 1901
+        in_span = hko[0][1] <= m.start <= hko[-1][1]  # HKO: the month in progress on 1901-01-01 on
         if in_span and first_year <= m.year <= last_year and m.label not in hko_labels:
             problems.append(f"{m} (from {date_of(m.start)}) is not in HKO's table")
     return problems

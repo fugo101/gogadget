@@ -1,10 +1,11 @@
 {
   // Open this file in VS Code. The ESP-IDF extension only treats a workspace
-  // folder as a project, so firmware/ is listed as its own folder next to the
-  // repository root (core/, ui/, sim/, docs/ are edited from the root folder).
+  // folder as a project, and on start-up it always selects the FIRST folder
+  // (useFirstWorkspaceFolder in v2.3.0), so firmware/ must stay first. The
+  // repository root follows for core/, ui/, sim/ and docs/.
   "folders": [
-    { "name": "gogadget", "path": "." },
-    { "name": "firmware (ESP-IDF)", "path": "firmware" }
+    { "name": "firmware (ESP-IDF)", "path": "firmware" },
+    { "name": "gogadget", "path": "." }
   ],
   "settings": {
     // Window-scoped settings must live here in a multi-folder workspace.

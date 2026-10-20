@@ -8,8 +8,11 @@ The Watchface shows the Lunar date (âm lịch). `core/` computes it with intege
 | `core/src/gg_lunar_data.h`, `core/src/gg_lunar_data.c` | Table layout (hand-written) and tables (generated) |
 | `core/test/test_lunar.c` | Host tests |
 | `core/test/data/lunar_months.csv` | Every month of lunar years 1900-2100, from the generator |
+| `core/test/data/lunar_terms.csv` | The date of every solar term of 1900-2100, from the generator |
 | `core/test/data/hko_month_starts.csv` | Month starts from the Hong Kong Observatory's tables 1901-2100 |
+| `core/test/data/hko_solar_terms.csv` | Solar-term dates from the same tables |
 | `core/test/data/hko_differences.csv` | The months in which Vietnam and HKO differ, with the reason |
+| `core/test/data/hko_term_differences.csv` | The solar terms on which Vietnam and HKO differ, with the reason |
 | `tools/lunar/` | The generator, the HKO fetcher, pinned requirements ([README](../tools/lunar/README.md)) |
 
 ## Rules
@@ -74,13 +77,13 @@ The months run through the 60 pairs 12 a year, so their stem advances with 12Y +
 From the repository root, after the setup in [tools/lunar/README.md](../tools/lunar/README.md):
 
 ```sh
-tools/lunar/.venv/bin/python -I tools/lunar/fetch_hko.py   # only when core/test/data/hko_month_starts.csv must change
-tools/lunar/.venv/bin/python -I tools/lunar/generate.py    # writes gg_lunar_data.c and the two CSV files
+tools/lunar/.venv/bin/python -I tools/lunar/fetch_hko.py   # only when the hko_*.csv test data must change
+tools/lunar/.venv/bin/python -I tools/lunar/generate.py    # writes gg_lunar_data.c and the four generated CSV files
 make lunar-check                                       # generate.py --check: fails if a committed file is stale
 make test
 ```
 
-Downloads (the ephemeris, the 200 HKO files) go to `$GG_CACHE_DIR`, by default `~/.cache/gogadget`, never into the repository. `fetch_hko.py` waits a second between requests and checks every file against `tools/lunar/hko-sha256.txt`. A different Skyfield, NumPy or ephemeris can change the tables: review the diff of `lunar_months.csv`, then run the verification commands below.
+Downloads (the ephemeris, the 200 HKO files) go to `$GG_CACHE_DIR`, by default `~/.cache/gogadget`, never into the repository. `fetch_hko.py` waits a second between requests and checks every file against `tools/lunar/hko-sha256.txt`. A different Skyfield, NumPy or ephemeris can change the tables: review the diff of `lunar_months.csv` and `lunar_terms.csv`, then run the verification commands below. `generate.py` stops instead of writing a difference from HKO that the time zone does not explain (or, for the three solar terms below, that `KNOWN_HKO_TERM_DEVIATIONS` does not list).
 
 ## Verification
 
@@ -99,7 +102,7 @@ In all four exceptions from 1929 on, DE440s puts the event within two minutes of
 
 ### Vietnam against HKO
 
-`core/test/test_lunar.c` compares every day from 1 January 1901 to 2100-12-31 with HKO's table; it starts on 1900-12-22, day 1 of the lunar month in progress on 1 January 1901, which `fetch_hko.py` dates from the lunar day of HKO's first row. 68 months give some day a different lunar date, all listed with their reason in `core/test/data/hko_differences.csv`; the test fails if one is missing or stale. Every one is explained by the time zone:
+`core/test/test_lunar.c` compares every day from 1 January 1901 to 2100-12-31 with HKO's table; it starts on 1900-12-22, day 1 of the lunar month in progress on 1 January 1901, which `fetch_hko.py` dates from the lunar day of HKO's first row. 68 months give some day a different lunar date, all listed with their reason in `core/test/data/hko_differences.csv`; the test fails if one is missing or stale, if a reason is not one the time zone gives, or if the count is not 68. Changing that count needs a written reason on this page. Every one is explained by the time zone:
 
 - **Before 1929, 6 months**: the 3 Beijing-mean-time new moons above, each making one month start a day later here and the month before it a day longer.
 - **From 1968, 55 months start a day earlier in Vietnam**: the new moon falls between 23:00 and 24:00 Hanoi time, after midnight in UTC+8. Among them Tết 1968 (29/1, China 30/1), 1969 (16/2 vs 17/2), 2007 (17/2 vs 18/2), 2030 (2/2 vs 3/2) and 2053 (18/2 vs 19/2), and the leap months 8 of 1995 (24/9 vs 25/9) and 3 of 2031 (21/4 vs 22/4).
@@ -172,6 +175,13 @@ The research counted 58 start differences between Hồ Ngọc Đức's table and
 
 </details>
 
+### Solar terms against HKO
+
+`core/test/test_lunar.c` checks every date of `core/test/data/lunar_terms.csv` through `gg_lunar_solar_term()`, so a one-day error in any of the 4824 terms fails, and compares each of HKO's 4800 terms of 1901-2100 (`hko_solar_terms.csv`) with the date the C code gives. 143 differ, all listed in `hko_term_differences.csv`; the count is pinned like the months':
+
+- **140 by the time zone**: 137 from 1968 whose instant falls between 23:00 and 24:00 Hanoi time, after midnight in UTC+8, and 3 before 1929 (Đại tuyết 1917, Bạch lộ 1927, Hạ chí 1928) that fall before midnight in Beijing mean time and after it in UTC+8.
+- **3 that HKO dates differently from DE440s in its own zone too**, listed in `KNOWN_HKO_TERM_DEVIATIONS` in `generate.py` and named in the test: Tiểu tuyết 1912 (DE440s 23:33:47 Beijing mean time on 22/11, HKO 23/11) and Thu phân 1913 (23:38:21 on 23/9, HKO 24/9), where HKO's early terms follow neither zone by 21-26 minutes; and Đại hàn 1979 (DE440s 5.6 s before midnight UTC+8 on 20/1, HKO 21/1), which is 22:59:54 in Hanoi, so 20/1 there whichever side of UTC+8 midnight the instant lies.
+
 ### Knife-edge events
 
 Events close to local midnight, from `generate.py --margins 120` (time truncated to 0.1 s, margin rounded):
@@ -200,7 +210,7 @@ Further events within 120 s: Bạch lộ 2014 (+86.0 s), Tiểu thử 2041 (-87.
 
 ### Host tests
 
-`core/test/test_lunar.c` (15 tests, under 0.1 s): the check value with its Can Chi; the Tết and leap-month cases above; the knife-edge months and terms; an exhaustive round trip of every day in the range, checking that each day follows the one before; the rules (month and year lengths, Đông chí in month 11 every year, no principal term in any of the 74 leap months, solar terms one at a time 14-16 days apart); every row of `lunar_months.csv`; and the HKO comparison. `core/test/test_app.c` checks that the reducer fills the Lunar date and the leap flag when the date changes, and the leap-month golden screenshot in `ui/test/test_screens.c` renders a real leap-month day (2025-07-27, day 3 of leap month 6 of Ất Tỵ).
+`core/test/test_lunar.c` (18 tests, under 0.1 s): the check value with its Can Chi; the Tết and leap-month cases above; the knife-edge months and terms; the two months the zone switch decides; an exhaustive round trip of every day in the range, checking that each day follows the one before; the rules (month and year lengths, Đông chí in month 11 every year, no principal term in any of the 74 leap months, solar terms one at a time 14-16 days apart); every row of `lunar_months.csv` and `lunar_terms.csv`; and the HKO comparisons of months and solar terms. `core/test/test_app.c` checks that the reducer fills the Lunar date and the leap flag when the date changes, and the leap-month golden screenshot in `ui/test/test_screens.c` renders a real leap-month day (2025-07-27, day 3 of leap month 6 of Ất Tỵ).
 
 ## Policies
 

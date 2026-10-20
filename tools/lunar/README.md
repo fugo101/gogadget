@@ -4,8 +4,8 @@ Generates the Vietnamese lunar calendar tables in `core/src/gg_lunar_data.c` fro
 
 | File | What it does |
 |---|---|
-| `generate.py` | Finds every new moon and solar term from mid-1899 to early 2102 with Skyfield, applies the rules and writes `core/src/gg_lunar_data.c`, `core/test/data/lunar_months.csv` and `core/test/data/hko_differences.csv`. It also compares with the Hong Kong Observatory and lists events near midnight. |
-| `fetch_hko.py` | Downloads HKO's Gregorian-lunar tables for 1901-2100 (one request per second, cached) and derives `core/test/data/hko_month_starts.csv`. |
+| `generate.py` | Finds every new moon and solar term from mid-1899 to early 2102 with Skyfield, applies the rules and writes `core/src/gg_lunar_data.c` and, in `core/test/data/`, `lunar_months.csv`, `lunar_terms.csv`, `hko_differences.csv` and `hko_term_differences.csv`. It stops on a difference from HKO that the time zone does not explain. It also compares with the Hong Kong Observatory and lists events near midnight. |
+| `fetch_hko.py` | Downloads HKO's Gregorian-lunar tables for 1901-2100 (one request per second, cached) and derives `core/test/data/hko_month_starts.csv` and `core/test/data/hko_solar_terms.csv`. |
 | `hko-sha256.txt` | SHA-256 of the 200 HKO files as fetched; `fetch_hko.py` stops if one changes. |
 | `requirements.txt` | Exact versions. A different Skyfield or NumPy can change the output: regenerate and review the diff. |
 
@@ -26,7 +26,7 @@ From the repository root (`-I` keeps the current directory off Python's import p
 
 ```sh
 tools/lunar/.venv/bin/python -I tools/lunar/fetch_hko.py     # only when the HKO data is missing
-tools/lunar/.venv/bin/python -I tools/lunar/generate.py      # writes the three files
+tools/lunar/.venv/bin/python -I tools/lunar/generate.py      # writes the five files
 make lunar-check                                         # generate.py --check with the venv's Python
 make test
 ```

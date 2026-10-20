@@ -5,11 +5,13 @@ Skyfield finds every new moon and every solar term (each 15 degrees of the Sun's
 apparent longitude) from mid-1899 to early 2102. Each instant becomes a local
 date, and the rules in docs/lunar.md turn those dates into months. Writes:
 
-  core/src/gg_lunar_data.c            compact tables for the firmware
-  core/test/data/lunar_months.csv     every month of lunar years 1900-2100
-  core/test/data/hko_differences.csv  the months in which this calendar and the
-                                      Hong Kong Observatory's Chinese calendar
-                                      differ, each with the event that explains it
+  core/src/gg_lunar_data.c                 compact tables for the firmware
+  core/test/data/lunar_months.csv          every month of lunar years 1900-2100
+  core/test/data/lunar_terms.csv           the date of every solar term, 1900-2100
+  core/test/data/hko_differences.csv       the months in which this calendar and the
+                                           Hong Kong Observatory's Chinese calendar
+                                           differ, each with the event that explains it
+  core/test/data/hko_term_differences.csv  the same for the solar terms
 
 Run it with the tool's venv (tools/lunar/README.md):
 
@@ -51,8 +53,11 @@ from skyfield.searchlib import find_discrete
 REPO = Path(__file__).resolve().parents[2]
 OUT_C = REPO / "core" / "src" / "gg_lunar_data.c"
 OUT_MONTHS = REPO / "core" / "test" / "data" / "lunar_months.csv"
+OUT_TERMS = REPO / "core" / "test" / "data" / "lunar_terms.csv"
 OUT_DIFFS = REPO / "core" / "test" / "data" / "hko_differences.csv"
+OUT_TERM_DIFFS = REPO / "core" / "test" / "data" / "hko_term_differences.csv"
 HKO_MONTHS = REPO / "core" / "test" / "data" / "hko_month_starts.csv"
+HKO_TERMS = REPO / "core" / "test" / "data" / "hko_solar_terms.csv"
 
 # Lunar years in the tables; core/include/gg/gg_lunar.h has the same numbers.
 FIRST_YEAR = 1900
@@ -541,8 +546,8 @@ def read_hko_months(path: Path = HKO_MONTHS) -> list[tuple[tuple[int, int, bool]
     return rows
 
 
-def read_hko_terms(path: Path) -> dict[tuple[int, int], int]:
-    """{(Gregorian year, term k): day} from the solar_terms.csv fetch_hko.py writes."""
+def read_hko_terms(path: Path = HKO_TERMS) -> dict[tuple[int, int], int]:
+    """{(Gregorian year, term k): day} from core/test/data/hko_solar_terms.csv."""
     out = {}
     with open(path, newline="") as f:
         for row in csv.DictReader(line for line in f if not line.startswith("#")):
@@ -649,9 +654,83 @@ def hko_differences(months, events, hko) -> list[tuple[Month, str, str]]:
             reason = f"HKO numbers it {label_text(hko_label)}: " + "; ".join(map(moved, terms))
             explained = bool(terms) and china.get(m.start) == hko_label
         if not explained:
-            reason = "HKO differs from DE440s: " + reason
+            # The zone does not explain it: HKO disagrees with DE440s on an instant, or
+            # the rules here are wrong. Either way it needs a look, not a table entry.
+            raise RuntimeError(f"{m} differs from HKO, not explained by the zone: {reason}")
         out.append((m, str(date_of(hko_start)) if hko_start is not None else "-", reason))
     return out
+
+
+# Solar terms on which HKO's date differs from DE440s even in HKO's own zone, with
+# the reason (docs/lunar.md, Verification). Any other unexplained difference stops
+# the generator.
+KNOWN_HKO_TERM_DEVIATIONS = {
+    (1912, 16): "HKO 26 min or more after DE440s; HKO's early terms follow no zone exactly",
+    (1913, 12): "HKO 21 min or more after DE440s; HKO's early terms follow no zone exactly",
+    (1979, 20): "DE440s 5.6 s before midnight UTC+8 and HKO after it; in UTC+7 both fall on 20/1",
+}
+
+
+def hko_term_differences(events, hko_terms) -> list[tuple[Event, int, str]]:
+    """The solar terms of Gregorian years 1901-2100 whose date here is not HKO's.
+
+    Each comes with HKO's date and the reason: the zone (the same instant in HKO's
+    zone falls on HKO's date) or an entry of KNOWN_HKO_TERM_DEVIATIONS.
+    """
+    out, known = [], set()
+    for e in events:
+        d = date_of(e.day("vn")) if e.term >= 0 else None
+        if d is None or not 1901 <= d.year <= LAST_YEAR:
+            continue
+        hko_day = hko_terms[d.year, e.term]
+        if hko_day == e.day("vn"):
+            continue
+        moved = f"{e.name} {e.when('vn')} = {e.when('china')}"
+        note = KNOWN_HKO_TERM_DEVIATIONS.get((d.year, e.term))
+        if note is not None:
+            known.add((d.year, e.term))
+            reason = f"known HKO deviation: {note}; {moved}"
+        elif e.day("china") == hko_day:
+            reason = f"zone: {moved}"
+        else:
+            raise RuntimeError(f"{e.name} {d.year} differs from HKO, not explained: {moved}")
+        out.append((e, hko_day, reason))
+    stale = set(KNOWN_HKO_TERM_DEVIATIONS) - known
+    if stale:
+        raise RuntimeError(f"KNOWN_HKO_TERM_DEVIATIONS lists terms that agree: {sorted(stale)}")
+    return out
+
+
+def render_terms_csv(events: list[Event]) -> str:
+    out = io.StringIO()
+    out.write(
+        f"# Local dates on which the solar terms begin, Gregorian years {FIRST_YEAR}-{LAST_YEAR},\n"
+        "# generated by tools/lunar/generate.py (docs/lunar.md); do not edit. term: k, the\n"
+        "# term that begins when the Sun's apparent longitude reaches 15k degrees.\n"
+    )
+    writer = csv.writer(out, lineterminator="\n")
+    writer.writerow(["date", "term"])
+    for e in events:
+        if e.term >= 0 and FIRST_YEAR <= date_of(e.day("vn")).year <= LAST_YEAR:
+            writer.writerow([date_of(e.day("vn")), e.term])
+    return out.getvalue()
+
+
+def render_term_differences_csv(diffs: list[tuple[Event, int, str]]) -> str:
+    out = io.StringIO()
+    out.write(
+        "# Solar terms that begin on another date here than in the Hong Kong Observatory's\n"
+        "# Chinese calendar (core/test/data/hko_solar_terms.csv), generated by\n"
+        "# tools/lunar/generate.py (docs/lunar.md); do not edit. date: here; reason: the\n"
+        "# instant in Vietnam's and in HKO's zone, or why HKO's date is known to differ.\n"
+    )
+    writer = csv.writer(out, lineterminator="\n")
+    writer.writerow(["date", "term", "hko_date", "reason"])
+    for e, hko_day, reason in diffs:
+        if "," in reason:
+            raise RuntimeError(f"a comma in {reason!r}: the C test reads the reason unquoted")
+        writer.writerow([date_of(e.day("vn")), e.term, date_of(hko_day), reason])
+    return out.getvalue()
 
 
 def render_differences_csv(diffs: list[tuple[Month, str, str]]) -> str:
@@ -721,7 +800,6 @@ def main() -> int:
     parser.add_argument("--zone", choices=ZONES, default="vn", help="time-zone rule")
     parser.add_argument("--check", action="store_true", help="fail if outputs are stale")
     parser.add_argument("--compare-hko", action="store_true", help="compare with HKO's tables")
-    parser.add_argument("--hko-terms", type=Path, help="solar_terms.csv from fetch_hko.py")
     parser.add_argument("--margins", type=float, metavar="S", help="list events near midnight")
     parser.add_argument("--sensitivity", action="store_true", help="UT1 instead of UTC")
     args = parser.parse_args()
@@ -746,11 +824,14 @@ def main() -> int:
     status = 0
     report_only = args.compare_hko or args.margins is not None or args.sensitivity
     if args.zone == "vn" and not report_only:
-        hko = read_hko_months()
+        hko, hko_terms = read_hko_months(), read_hko_terms()
+        term_diffs = hko_term_differences(events, hko_terms)
         outputs = (
             (OUT_C, render_c(events, months)),
             (OUT_MONTHS, render_months_csv(months)),
+            (OUT_TERMS, render_terms_csv(events)),
             (OUT_DIFFS, render_differences_csv(hko_differences(months, events, hko))),
+            (OUT_TERM_DIFFS, render_term_differences_csv(term_diffs)),
         )
         for path, text in outputs:
             if not write_or_check(path, text, args.check) and args.check:
@@ -767,19 +848,21 @@ def main() -> int:
             print(f"\nHKO months of lunar years {first}-{last}: {n}, differences: {len(problems)}")
             for p in problems:
                 print("  " + p)
-        terms_path = args.hko_terms or cache_dir() / "hko" / "solar_terms.csv"
-        if terms_path.exists():
-            hko_terms = read_hko_terms(terms_path)
-            for first, last in ((1901, 1928), (1929, LAST_YEAR)):
-                n, problems = compare_terms(events, args.zone, hko_terms, first, last)
-                print(f"\nHKO solar terms {first}-{last}: {n}, differences: {len(problems)}")
-                for p in problems:
-                    print("  " + p)
+        hko_terms = read_hko_terms()
+        for first, last in ((1901, 1928), (1929, LAST_YEAR)):
+            n, problems = compare_terms(events, args.zone, hko_terms, first, last)
+            print(f"\nHKO solar terms {first}-{last}: {n}, differences: {len(problems)}")
+            for p in problems:
+                print("  " + p)
         if args.zone == "vn":
             diffs = hko_differences(months, events, hko)
             print(f"\nmonths that differ from HKO: {len(diffs)}")
             for m, hko_start, reason in diffs:
                 print(f"  {str(m):22} {date_of(m.start)}  HKO {hko_start:10}  {reason}")
+            term_diffs = hko_term_differences(events, hko_terms)
+            print(f"\nsolar terms that differ from HKO: {len(term_diffs)}")
+            for e, hko_day, reason in term_diffs:
+                print(f"  {date_of(e.day('vn'))}  HKO {date_of(hko_day)}  {reason}")
 
     if args.margins is not None:
         print(f"\nevents within {args.margins:g} s of local midnight ({ZONES[args.zone]}):")

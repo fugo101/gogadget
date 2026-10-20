@@ -8,8 +8,7 @@ $GG_CACHE_DIR/hko (default ~/.cache/gogadget/hko), checks them against
 tools/lunar/hko-sha256.txt and derives:
 
   core/test/data/hko_month_starts.csv  lunar year, month, leap, Gregorian start date
-  $GG_CACHE_DIR/hko/solar_terms.csv    Gregorian date of each solar term, for
-                                       generate.py --compare-hko
+  core/test/data/hko_solar_terms.csv   Gregorian date of each solar term
 
 Only these dates go into the repository, never HKO's files.
 
@@ -37,6 +36,7 @@ import certifi
 
 REPO = Path(__file__).resolve().parents[2]
 OUT_MONTHS = REPO / "core" / "test" / "data" / "hko_month_starts.csv"
+OUT_TERMS = REPO / "core" / "test" / "data" / "hko_solar_terms.csv"
 CHECKSUMS = Path(__file__).resolve().parent / "hko-sha256.txt"
 URL = "https://www.hko.gov.hk/en/gts/time/calendar/text/files/T{year}e.txt"
 FIRST_YEAR, LAST_YEAR = 1901, 2100
@@ -218,14 +218,23 @@ def main() -> int:
     OUT_MONTHS.parent.mkdir(parents=True, exist_ok=True)
     OUT_MONTHS.write_text(out.getvalue())
 
-    with open(directory / "solar_terms.csv", "w", newline="") as f:
-        writer = csv.writer(f, lineterminator="\n")
-        writer.writerow(["date", "term"])
-        for date, k in terms:
-            writer.writerow([date.isoformat(), k])
+    out = io.StringIO()
+    out.write(
+        "# Dates on which the solar terms begin in the Chinese calendar, from the Hong Kong\n"
+        f"# Observatory's Gregorian-lunar conversion tables {FIRST_YEAR}-{LAST_YEAR}\n"
+        "# (https://www.hko.gov.hk/en/gts/time/conversion1_text.htm), derived by\n"
+        "# tools/lunar/fetch_hko.py; do not edit. term: k, the term that begins when the\n"
+        "# Sun's apparent longitude reaches 15k degrees (0 = Vernal Equinox, 18 = Winter\n"
+        "# Solstice).\n"
+    )
+    writer = csv.writer(out, lineterminator="\n")
+    writer.writerow(["date", "term"])
+    for date, k in terms:
+        writer.writerow([date.isoformat(), k])
+    OUT_TERMS.write_text(out.getvalue())
     print(
         f"{len(months)} month starts into {OUT_MONTHS.relative_to(REPO)}, "
-        f"{len(terms)} solar terms into {directory / 'solar_terms.csv'}",
+        f"{len(terms)} solar terms into {OUT_TERMS.relative_to(REPO)}",
         file=sys.stderr,
     )
     return 0

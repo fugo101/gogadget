@@ -4,6 +4,6 @@ The Vietnamese lunar date is computed by our own integer C code from compact tab
 
 ## Consequences
 
-- CI compares every day from 1901 to 2100 with the Hong Kong Observatory tables; the 68 months that differ, all explained by the time zone, are listed with their reasons in `core/test/data/hko_differences.csv`. It also checks the known Vietnam-specific years (1985, 2007, 2030, 2053), the months whose new moon falls near midnight, and round-trips every day from Tết 1900 (31 January; 1-30 January 1900 belong to lunar year 1899) to 2100-12-31.
+- CI compares every day from 1901 to 2100 with the Hong Kong Observatory tables; the 68 months that differ, all explained by the time zone, are listed with their reasons in `core/test/data/hko_differences.csv`, and the solar terms likewise (`hko_term_differences.csv`). It also checks the known Vietnam-specific years (1985, 2007, 2030, 2053), the months whose new moon falls near midnight, and round-trips every day from Tết 1900 (31 January; 1-30 January 1900 belong to lunar year 1899) to 2100-12-31.
 - Near midnight the DE440s instant decides, in UTC with no leap second after 2016: four months between 2054 and 2085 then differ from Hồ Ngọc Đức's table or algorithm. UTC+8 before 1968 also applies to 1900-1928, when the historical calendar used Beijing mean time; three months, Tết 1916 among them, start a day later than in it (docs/lunar.md).
 - Check value: 2026-10-20 is day 11 of month 9, year Bính Ngọ (day Đinh Mão, month Mậu Tuất).

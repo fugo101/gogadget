@@ -454,6 +454,19 @@ static bool next_row(FILE *f, char *line, int len)
     return false;
 }
 
+/* A reason generate.py writes for a month the time zone explains (not "HKO differs"). */
+static bool explained_month(const char *reason)
+{
+    static const char *const forms[] = {
+        "starts earlier: ", "starts later: ", "ends earlier: ", "ends later: ", "HKO numbers it "};
+    for (size_t i = 0; i < GG_ARRAY_LEN(forms); i++) {
+        if (strncmp(reason, forms[i], strlen(forms[i])) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static bool same_label(const month_row_t *a, int16_t year, uint8_t month, bool leap)
 {
     return a->year == year && a->month == month && a->leap == leap;
@@ -543,12 +556,13 @@ static void test_matches_hko_except_listed_differences(void)
     char line[512];
     size_t listed = 0;
     while (next_row(f, line, sizeof(line))) {
-        int year, month, leap, y, m, d;
+        int year, month, leap, y, m, d, reason = 0;
         char hko_start[16];
-        TEST_ASSERT_EQUAL_INT_MESSAGE(
-            7,
-            sscanf(line, "%d,%d,%d,%d-%d-%d,%15[^,]", &year, &month, &leap, &y, &m, &d, hko_start),
-            line);
+        TEST_ASSERT_EQUAL_INT_MESSAGE(7,
+                                      sscanf(line, "%d,%d,%d,%d-%d-%d,%15[^,],%n", &year, &month,
+                                             &leap, &y, &m, &d, hko_start, &reason),
+                                      line);
+        TEST_ASSERT_TRUE_MESSAGE(reason > 0 && explained_month(line + reason), line);
         char want[32], got[32];
         label_text(want, sizeof(want), (int16_t)year, (uint8_t)month, leap);
         if (listed >= found_count) {
@@ -575,7 +589,129 @@ static void test_matches_hko_except_listed_differences(void)
     }
     fclose(f);
     TEST_ASSERT_EQUAL_MESSAGE(found_count, listed, "differences missing from hko_differences.csv");
-    TEST_ASSERT_EQUAL(68, listed); /* docs/lunar.md explains them */
+    TEST_ASSERT_EQUAL(68, listed); /* docs/lunar.md explains them; a new count needs a reason */
+}
+
+/* The date of every solar term the API reports, by Gregorian year and term number, or
+ * NO_TERM. */
+#define NO_TERM INT32_MIN
+
+static void our_terms(int32_t terms[][GG_SOLAR_TERM_COUNT])
+{
+    for (int y = 0; y <= GG_LUNAR_LAST_YEAR - GG_LUNAR_FIRST_YEAR; y++) {
+        for (int k = 0; k < GG_SOLAR_TERM_COUNT; k++) {
+            terms[y][k] = NO_TERM;
+        }
+    }
+    for (int32_t z = first_day(); z <= last_day(); z++) {
+        int32_t y;
+        uint8_t m, d;
+        gg_solar_term_t t;
+        civil_of(z, &y, &m, &d);
+        TEST_ASSERT_TRUE(gg_lunar_solar_term(y, m, d, &t));
+        if (t.first_day) {
+            TEST_ASSERT_EQUAL_INT32(NO_TERM, terms[y - GG_LUNAR_FIRST_YEAR][t.term]);
+            terms[y - GG_LUNAR_FIRST_YEAR][t.term] = z;
+        }
+    }
+}
+
+/* Every solar term of 1900-2100 in the generator's list, date by date. */
+static void test_matches_generator_term_list(void)
+{
+    static int32_t ours[GG_LUNAR_LAST_YEAR - GG_LUNAR_FIRST_YEAR + 1][GG_SOLAR_TERM_COUNT];
+    our_terms(ours);
+    FILE *f = open_data("lunar_terms.csv");
+    char line[128];
+    int rows = 0, before_range = 0;
+    while (next_row(f, line, sizeof(line))) {
+        int y, m, d, term;
+        TEST_ASSERT_EQUAL_INT_MESSAGE(4, sscanf(line, "%d-%d-%d,%d", &y, &m, &d, &term), line);
+        TEST_ASSERT_TRUE_MESSAGE(term >= 0 && term < GG_SOLAR_TERM_COUNT, line);
+        int32_t z = gg_days_from_civil(y, (uint32_t)m, (uint32_t)d);
+        gg_solar_term_t t;
+        if (z < first_day()) { /* Tiểu hàn and Đại hàn 1900, before the range */
+            TEST_ASSERT_FALSE_MESSAGE(gg_lunar_solar_term(y, (uint8_t)m, (uint8_t)d, &t), line);
+            before_range++;
+        } else {
+            TEST_ASSERT_EQUAL_INT32_MESSAGE(z, ours[y - GG_LUNAR_FIRST_YEAR][term], line);
+        }
+        rows++;
+    }
+    fclose(f);
+    TEST_ASSERT_EQUAL_INT(2, before_range);
+    TEST_ASSERT_EQUAL_INT(201 * 24, rows); /* with the 201 * 24 - 2 starts the API reports */
+}
+
+/*
+ * Every solar term of 1901-2100 against HKO's date: each term on another date must be
+ * listed in hko_term_differences.csv, in date order, and every listed term must differ.
+ * The zone explains all but three, which HKO dates differently from DE440s in its own
+ * zone too (docs/lunar.md).
+ */
+static void test_terms_match_hko_except_listed_differences(void)
+{
+    static int32_t ours[GG_LUNAR_LAST_YEAR - GG_LUNAR_FIRST_YEAR + 1][GG_SOLAR_TERM_COUNT];
+    static struct {
+        int32_t ours, hko;
+        uint8_t term;
+    } found[256];
+    our_terms(ours);
+    FILE *f = open_data("hko_solar_terms.csv");
+    char line[512];
+    size_t rows = 0, found_count = 0;
+    while (next_row(f, line, sizeof(line))) {
+        int y, m, d, term;
+        TEST_ASSERT_EQUAL_INT_MESSAGE(4, sscanf(line, "%d-%d-%d,%d", &y, &m, &d, &term), line);
+        TEST_ASSERT_TRUE_MESSAGE(y >= 1901 && term >= 0 && term < GG_SOLAR_TERM_COUNT, line);
+        int32_t theirs = gg_days_from_civil(y, (uint32_t)m, (uint32_t)d);
+        int32_t mine = ours[y - GG_LUNAR_FIRST_YEAR][term];
+        TEST_ASSERT_TRUE_MESSAGE(mine != NO_TERM, line);
+        if (mine != theirs) {
+            TEST_ASSERT_TRUE(found_count < GG_ARRAY_LEN(found));
+            found[found_count].ours = mine;
+            found[found_count].hko = theirs;
+            found[found_count++].term = (uint8_t)term;
+        }
+        rows++;
+    }
+    fclose(f);
+    TEST_ASSERT_EQUAL(200 * 24, rows);
+
+    f = open_data("hko_term_differences.csv");
+    size_t listed = 0, known = 0;
+    static const char *const known_terms[] = {"1912-11-22", "1913-09-23", "1979-01-20"};
+    while (next_row(f, line, sizeof(line))) {
+        int y, m, d, term, hy, hm, hd, reason = 0;
+        TEST_ASSERT_EQUAL_INT_MESSAGE(
+            7, sscanf(line, "%d-%d-%d,%d,%d-%d-%d,%n", &y, &m, &d, &term, &hy, &hm, &hd, &reason),
+            line);
+        if (listed >= found_count) {
+            TEST_FAIL_MESSAGE("hko_term_differences.csv lists a term that does not differ");
+        }
+        char want[16], got[16];
+        snprintf(want, sizeof(want), "%04d-%02d-%02d", y, m, d);
+        iso(got, sizeof(got), found[listed].ours);
+        TEST_ASSERT_EQUAL_STRING_MESSAGE(want, got, "first unlisted or stale term difference");
+        TEST_ASSERT_EQUAL_UINT8_MESSAGE(found[listed].term, term, line);
+        TEST_ASSERT_EQUAL_INT32_MESSAGE(found[listed].hko,
+                                        gg_days_from_civil(hy, (uint32_t)hm, (uint32_t)hd), line);
+        const char *why = line + reason;
+        if (strncmp(why, "known HKO deviation: ", 21) == 0) {
+            /* Only the three that docs/lunar.md discusses. */
+            TEST_ASSERT_TRUE_MESSAGE(known < GG_ARRAY_LEN(known_terms), line);
+            TEST_ASSERT_EQUAL_STRING_MESSAGE(known_terms[known], want, line);
+            known++;
+        } else {
+            TEST_ASSERT_TRUE_MESSAGE(reason > 0 && strncmp(why, "zone: ", 6) == 0, line);
+        }
+        listed++;
+    }
+    fclose(f);
+    TEST_ASSERT_EQUAL_MESSAGE(found_count, listed,
+                              "differences missing from hko_term_differences.csv");
+    TEST_ASSERT_EQUAL(GG_ARRAY_LEN(known_terms), known);
+    TEST_ASSERT_EQUAL(143, listed); /* docs/lunar.md explains them; a new count needs a reason */
 }
 
 int main(void)
@@ -597,5 +733,7 @@ int main(void)
     RUN_TEST(test_solar_terms_follow_each_other);
     RUN_TEST(test_matches_generator_month_list);
     RUN_TEST(test_matches_hko_except_listed_differences);
+    RUN_TEST(test_matches_generator_term_list);
+    RUN_TEST(test_terms_match_hko_except_listed_differences);
     return UNITY_END();
 }

@@ -2,6 +2,8 @@
 
 Personal ESP-IDF firmware for a LilyGO T-Display S3 (ESP32-S3, 320x170 ST7789V): a battery-first glance clock that grows into a pocket tool. GLOSSARY.md holds the domain language. Decisions and their reasons are in docs/adr/: read the ADR for an area before changing it, and record a new one when a change is hard to reverse, surprising, and a real trade-off.
 
+Where the work stands and what comes next: `docs/status.md`. Read it at the start of a session and update it when a step lands.
+
 ## Layout
 
 - `core/`: pure C state, reducer and policies. No `esp_*`, no LVGL; the host build enforces it.

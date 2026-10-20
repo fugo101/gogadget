@@ -1,0 +1,18 @@
+# C style for core/, ui/, firmware/ and sim/. VS Code formats on save through
+# clangd; ui/fonts/ (generated) opts out with its own .clang-format.
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 100
+BreakBeforeBraces: Linux
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+IndentCaseLabels: false
+PointerAlignment: Right
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
+MaxEmptyLinesToKeep: 1
+KeepEmptyLines:
+  AtStartOfBlock: false

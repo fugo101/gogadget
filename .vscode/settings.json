@@ -1,0 +1,54 @@
+{
+  // ---- C: clangd for navigation, diagnostics and formatting ----------------
+  // ESP-IDF's clangd understands the Xtensa target; .clangd picks the right
+  // compilation database per folder (firmware/build or sim/build). The tool
+  // versions in these paths are the ones ESP-IDF v6.1 installs (EIM default
+  // location); update them together with the IDF version.
+  // The same two settings live in gogadget.code-workspace: VS Code reads them
+  // from there when the multi-folder workspace is open.
+  "clangd.path": "${userHome}/.espressif/tools/esp-clangd/esp-21.1.3_20260408/esp-clangd/bin/clangd",
+  "clangd.arguments": [
+    "--query-driver=${userHome}/.espressif/tools/xtensa-esp-elf/**/bin/xtensa-esp32s3-elf-*,/usr/bin/cc,/usr/bin/clang,/usr/bin/gcc",
+    "--resource-dir=${userHome}/.espressif/tools/esp-clang/esp-21.1.3_20260408/esp-clang/lib/clang/21",
+    "--background-index",
+    "--header-insertion=never",
+    "--completion-style=detailed"
+  ],
+  "clangd.onConfigChanged": "restart",
+  "C_Cpp.intelliSenseEngine": "disabled",
+
+  "[c]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    "editor.formatOnSave": true
+  },
+
+  // ---- Other file types ------------------------------------------------------
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on"
+  },
+  "files.associations": {
+    "sdkconfig*": "properties",
+    "*.defconfig": "properties"
+  },
+  "shellcheck.customArgs": ["-x"],
+
+  // ---- Keep build output and downloads out of search and file watching -----
+  // managed_components/ stays visible: LVGL and esp_lvgl_port sources are the
+  // API reference.
+  "search.exclude": {
+    "**/build": true,
+    "sim/build*": true,
+    "firmware/managed_components": true,
+    "tools/fonts/node_modules": true,
+    "ui/fonts/*.c": true
+  },
+  "files.watcherExclude": {
+    "**/build/**": true,
+    "**/sim/build*/**": true,
+    "**/managed_components/**": true,
+    "**/node_modules/**": true
+  }
+}

@@ -1,0 +1,20 @@
+# clangd setup for VS Code (see .vscode/settings.json). Two compilation databases:
+# firmware/ uses the ESP-IDF build, everything else (core/, ui/, sim/) the host build.
+If:
+  PathMatch: firmware/.*
+CompileFlags:
+  CompilationDatabase: firmware/build
+  # GCC/Xtensa-only flags that clang does not know
+  Remove:
+    - -mdisable-hardware-atomics
+    - -mlongcalls
+    - -fstrict-volatile-bitfields
+    - -fno-tree-switch-conversion
+    - -fzero-init-padding-bits=*
+    - -fno-malloc-dce
+    - -fno-shrink-wrap
+---
+If:
+  PathExclude: firmware/.*
+CompileFlags:
+  CompilationDatabase: sim/build

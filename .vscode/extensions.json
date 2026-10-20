@@ -1,0 +1,19 @@
+{
+  // Open gogadget.code-workspace (not the bare folder) so the ESP-IDF extension
+  // sees firmware/ as its project.
+  "recommendations": [
+    "espressif.esp-idf-extension",
+    "llvm-vs-code-extensions.vscode-clangd",
+    "anthropic.claude-code",
+    "editorconfig.editorconfig",
+    "github.vscode-github-actions",
+    "redhat.vscode-yaml",
+    "timonwong.shellcheck"
+  ],
+  // clangd provides IntelliSense; Microsoft's C/C++ engine would duplicate and
+  // contradict it.
+  "unwantedRecommendations": [
+    "ms-vscode.cpptools",
+    "ms-vscode.cpptools-extension-pack"
+  ]
+}

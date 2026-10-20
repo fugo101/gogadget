@@ -1,0 +1,40 @@
+{
+  // Open this file in VS Code. The ESP-IDF extension only treats a workspace
+  // folder as a project, so firmware/ is listed as its own folder next to the
+  // repository root (core/, ui/, sim/, docs/ are edited from the root folder).
+  "folders": [
+    { "name": "gogadget", "path": "." },
+    { "name": "firmware (ESP-IDF)", "path": "firmware" }
+  ],
+  "settings": {
+    // Window-scoped settings must live here in a multi-folder workspace.
+    // Keep in sync with .vscode/settings.json.
+    "clangd.path": "${userHome}/.espressif/tools/esp-clangd/esp-21.1.3_20260408/esp-clangd/bin/clangd",
+    "clangd.arguments": [
+      "--query-driver=${userHome}/.espressif/tools/xtensa-esp-elf/**/bin/xtensa-esp32s3-elf-*,/usr/bin/cc,/usr/bin/clang,/usr/bin/gcc",
+      "--resource-dir=${userHome}/.espressif/tools/esp-clang/esp-21.1.3_20260408/esp-clang/lib/clang/21",
+      "--background-index",
+      "--header-insertion=never",
+      "--completion-style=detailed"
+    ],
+
+    // ESP-IDF extension. The IDF install is found through EIM's eim_idf.json.
+    // USB-C is the chip's USB-Serial-JTAG: flash over it like a UART, debug
+    // through the built-in JTAG.
+    "idf.flashType": "UART",
+    "idf.openOcdConfigs": ["board/esp32s3-builtin.cfg"],
+    "idf.showOnboardingOnInit": false,
+    "idf.telemetry": false
+  },
+  "extensions": {
+    "recommendations": [
+      "espressif.esp-idf-extension",
+      "llvm-vs-code-extensions.vscode-clangd",
+      "anthropic.claude-code",
+      "editorconfig.editorconfig",
+      "github.vscode-github-actions",
+      "redhat.vscode-yaml",
+      "timonwong.shellcheck"
+    ]
+  }
+}

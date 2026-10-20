@@ -1,0 +1,85 @@
+# Third-party notices
+
+Gogadget is MIT-licensed (see [LICENSE](LICENSE)). A few files contain material copied or ported from two LilyGO repositories, both MIT-licensed. The MIT licence requires its copyright and permission notice in all copies or substantial portions of the software, so this file keeps both notices in full, and release archives ship it next to the firmware images, which contain the ported code.
+
+Policy (what may be ported, what never is) and the upstream pins: [docs/upstream.md](docs/upstream.md).
+
+## Files with third-party material
+
+| Gogadget path | Status | Material | Source (MIT) |
+|---|---|---|---|
+| `docs/research/upstream/T_Display_S3-schematic-b0a5ecd.pdf` | present | Unmodified copy of the T-Display-S3 v1.2 schematic | T-Display-S3 `schematic/T_Display_S3.pdf` at b0a5ecd (blob `318cc4f`, unchanged at the pin 1cc41eb) |
+| `firmware/components/board/board_vendor_init.h` | present | The 14-entry ST7789V vendor init table (`LCD_MODULE_CMD_1`), bytes unchanged, re-encoded with explicit delays | T-Display-S3 `examples/factory/factory.ino:133-149` at 1cc41eb; the same table is in LilyGo-Display-IDF `main/display_s3.c:32-47` at b1a1cc5 |
+| `firmware/components/board/board_backlight.c` | present | The step maths of `setBrightness()`: from off, EN high gives level 16; pulses needed = (16 + current - target) mod 16 | T-Display-S3 `examples/factory/factory.ino:223-248` at 1cc41eb (last changed in 2d3c294) |
+
+Every file with ported material starts with a header of this form, and gets a row in this table:
+
+```c
+/* Portions derived from Xinyuan-LilyGO/<repo> <path> @<sha> (MIT). See THIRD_PARTY_NOTICES.md. */
+```
+
+Not covered here:
+- OneButton (vendored in T-Display-S3 `lib/OneButton`, BSD): Gogadget writes its own button state machine and uses none of its code. If that ever changes, add its BSD notice here.
+- Vendor datasheets: never copied; see [docs/research/upstream/datasheets.md](docs/research/upstream/datasheets.md).
+- Libraries fetched at build time (ESP-IDF, LVGL, esp_lvgl_port) keep their own licence files in their sources; nothing from them is copied into this repository. Collecting their notices for release archives belongs to the release process.
+
+## Xinyuan-LilyGO/T-Display-S3
+
+<https://github.com/Xinyuan-LilyGO/T-Display-S3>, `LICENSE` as of 1cc41eb (unchanged since the initial commit 91be212, 2022-06-13). Applies to the archived schematic, the init table and the AW9364 step maths. The example files carry no per-file headers.
+
+```text
+MIT License
+
+Copyright (c) 2022 Xinyuan-LilyGO
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## Xinyuan-LilyGO/LilyGo-Display-IDF
+
+<https://github.com/Xinyuan-LilyGO/LilyGo-Display-IDF>, `LICENSE` as of b1a1cc5 (unchanged since c465092, 2024-01-31). Applies to the init table, which is byte-identical here; the notice is kept so that either copy is covered. The source file `main/display_s3.c` (author: Lewis He) also carries its own copyright line, kept here as written:
+
+```text
+@license   MIT
+@copyright Copyright (c) 2024  Shenzhen Xinyuan Electronic Technology Co., Ltd
+```
+
+```text
+MIT License
+
+Copyright (c) 2024 TTGO
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

@@ -1,0 +1,12 @@
+# tools/upstream.lock: the LilyGO commits Gogadget's hardware notes and ports are based on.
+# Read by tools/upstream-watch.sh. Policy, watched paths and triage: docs/upstream.md.
+#
+# Format: name|git-url|pinned full SHA|space-separated watched paths (files or directories)
+# Upstream has no tags or releases, so pins are full commit SHAs. Bump a pin only in the
+# commit that also updates the notes (or ports) affected by the upstream change.
+#
+# T-Display-S3 @1cc41eb, 2026-10-13 ("Fix docs", #352). Branch: main.
+T-Display-S3|https://github.com/Xinyuan-LilyGO/T-Display-S3.git|1cc41eb1c76b2f3215130a3dd64e7138ce00b482|README.md README_CN.md schematic datasheet dimensions/README.MD image examples/factory/factory.ino examples/factory/pin_config.h examples/Sleep/Sleep.ino examples/GetBatteryVoltage/GetBatteryVoltage.ino examples/lv_demos/lv_demos.ino examples/lv_demos/pin_config.h examples/tft/tft.ino lib/TFT_eSPI/User_Setups/Setup206_LilyGo_T_Display_S3.h firmware/README.MD boards platformio.ini .github/workflows
+# LilyGo-Display-IDF @b1a1cc5, 2025-11-03 (merge of its PR #18). Branch: master.
+# Its T-Display-S3 files are unchanged since c465092 (2024-01-31).
+LilyGo-Display-IDF|https://github.com/Xinyuan-LilyGO/LilyGo-Display-IDF.git|b1a1cc54994bf1b417e3bb30c437bbe1036bff7f|main/display_s3.c main/main.cpp main/power_driver.cpp main/product_pins.h main/Kconfig.projbuild sdkconfig.defaults.t-display-s3 setup.py README.md

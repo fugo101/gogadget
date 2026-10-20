@@ -205,8 +205,11 @@ def ephemeris_path() -> Path:
 
 
 def tool_versions() -> str:
+    # Only Python's minor version: a patch release does not change the tables, and the
+    # generated header must not go stale with every interpreter update.
+    python = ".".join(platform.python_version_tuple()[:2])
     return (
-        f"Python {platform.python_version()}, Skyfield {skyfield.__version__}, "
+        f"Python {python}, Skyfield {skyfield.__version__}, "
         f"jplephem {jplephem.__version__}, NumPy {np.__version__}"
     )
 

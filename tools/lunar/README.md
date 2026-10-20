@@ -13,7 +13,7 @@ Downloads go to `$GG_CACHE_DIR` (default `~/.cache/gogadget`): `jpl/de440s.bsp` 
 
 ## Setup
 
-Python 3.14 (Homebrew: `/opt/homebrew/opt/python@3.14/libexec/bin/python3`):
+Python 3.14, any patch release (Homebrew: `/opt/homebrew/opt/python@3.14/libexec/bin/python3`). The generated header records only the minor version, so a Python update does not make the tables look stale; another minor version needs a regeneration and a review of the diff:
 
 ```sh
 python3.14 -m venv tools/lunar/.venv
@@ -27,7 +27,7 @@ From the repository root (`-I` keeps the current directory off Python's import p
 ```sh
 tools/lunar/.venv/bin/python -I tools/lunar/fetch_hko.py     # only when the HKO data is missing
 tools/lunar/.venv/bin/python -I tools/lunar/generate.py      # writes the three files
-tools/lunar/.venv/bin/python -I tools/lunar/generate.py --check
+make lunar-check                                         # generate.py --check with the venv's Python
 make test
 ```
 

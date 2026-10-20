@@ -76,7 +76,7 @@ From the repository root, after the setup in [tools/lunar/README.md](../tools/lu
 ```sh
 tools/lunar/.venv/bin/python -I tools/lunar/fetch_hko.py   # only when core/test/data/hko_month_starts.csv must change
 tools/lunar/.venv/bin/python -I tools/lunar/generate.py    # writes gg_lunar_data.c and the two CSV files
-tools/lunar/.venv/bin/python -I tools/lunar/generate.py --check
+make lunar-check                                       # generate.py --check: fails if a committed file is stale
 make test
 ```
 

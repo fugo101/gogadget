@@ -61,7 +61,7 @@ golden: ## Re-create every golden screenshot (then review the PNG diff)
 	cmake --build $(GOLDEN_BUILD) --target test_screens
 	@# Build first, so a compile error never leaves the references deleted.
 	rm -f $(GOLDEN_DIR)/*.png
-	$(GOLDEN_BUILD)/test_screens >/dev/null
+	$(GOLDEN_BUILD)/test_screens >/dev/null # runs from the repo root: REF_IMGS_PATH is relative
 	@# The test module reports success even when it cannot write a reference.
 	@missing=0; for n in $$(grep -o 'expect_screen("[^"]*")' ui/test/test_screens.c | sed 's/expect_screen("\(.*\)")/\1/'); do \
 		[ -f "$(GOLDEN_DIR)/$$n.png" ] || { echo "golden: $$n.png was not written"; missing=1; }; done; \

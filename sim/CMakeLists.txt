@@ -60,8 +60,11 @@ set(LV_BUILD_INSTALL OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(lvgl unity)
 
-# lv_test_screenshot_compare() resolves reference names against this prefix.
-target_compile_definitions(lvgl PRIVATE REF_IMGS_PATH="${GG_ROOT}/ui/test/golden/")
+# lv_test_screenshot_compare() resolves reference names against this prefix. It
+# is relative to the repository root, where the tests run: LVGL's folder
+# creation drops the leading "/" of an absolute path and would mkdir that path
+# below the working directory.
+target_compile_definitions(lvgl PRIVATE REF_IMGS_PATH="ui/test/golden/")
 
 add_subdirectory(${GG_ROOT}/core ${CMAKE_BINARY_DIR}/core)
 add_subdirectory(${GG_ROOT}/ui ${CMAKE_BINARY_DIR}/ui)
@@ -76,7 +79,7 @@ endforeach()
 
 add_executable(test_screens ${GG_ROOT}/ui/test/test_screens.c)
 target_link_libraries(test_screens PRIVATE gg_ui unity gg_warnings)
-add_test(NAME ui_screens COMMAND test_screens)
+add_test(NAME ui_screens COMMAND test_screens WORKING_DIRECTORY ${GG_ROOT})
 
 if(GG_WITH_SDL)
     add_executable(gg_sim sim_main.c)

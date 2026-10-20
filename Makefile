@@ -4,7 +4,10 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 IDF_ACTIVATE ?= $(HOME)/.espressif/tools/activate_idf_v6.1.sh
-IDF := source "$(IDF_ACTIVATE)" >/dev/null && idf.py -C firmware
+# Run idf.py through python3: that is what the VS Code extension's configuration
+# editor uses, and idf.py refuses a build dir configured by another interpreter
+# path (venv/bin/python vs venv/bin/python3 are the same binary, but compared as strings).
+IDF := source "$(IDF_ACTIVATE)" >/dev/null && python3 "$$IDF_PATH/tools/idf.py" -C firmware
 PORT ?=
 PORT_ARG := $(if $(PORT),-p $(PORT),)
 

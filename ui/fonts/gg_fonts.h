@@ -5,5 +5,4 @@
 
 LV_FONT_DECLARE(gg_font_text_16)   /* Be Vietnam Pro Medium + symbols */
 LV_FONT_DECLARE(gg_font_text_20)   /* Be Vietnam Pro Medium + symbols */
-LV_FONT_DECLARE(gg_font_digits_28) /* DSEG7 Classic Bold, digits only */
-LV_FONT_DECLARE(gg_font_digits_70) /* DSEG7 Classic Bold, digits only */
+LV_FONT_DECLARE(gg_font_digits_88) /* DSEG7 Classic Bold, digits only */

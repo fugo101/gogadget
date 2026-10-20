@@ -41,6 +41,5 @@ digit_font() { # size
 mkdir -p "$out"
 text_font 16
 text_font 20
-digit_font 28
-digit_font 70
+digit_font 88
 echo "fonts written to ui/fonts"

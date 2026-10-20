@@ -6,7 +6,7 @@ Features arrive one at a time; each milestone ships with golden screenshots for 
 
 - Repository, CI (firmware build, host tests, golden screenshots, secrets check), simulator.
 - Board bring-up: display (ADR-0006), backlight (ADR-0007), buttons (ADR-0008), dev console (ADR-0016).
-- Watchface v1: large HH:MM with small seconds, Solar date with Vietnamese weekday ("Thứ Ba, 20/10/2026"), Lunar date ("11/9 ÂL"), Status bar.
+- Watchface v1 (minimal variant, docs/ui/design.md): 88 px seven-segment HH:MM with a seconds line, Solar date with Vietnamese weekday and Lunar date ("Thứ Ba 20/10 · 11/9 ÂL"), Status bar.
 - Power model (ADR-0009): Standby, Glance, Always-on on USB, battery level, fast wake.
 - Wi-Fi networks via the console and NTP Sync four times a day (ADR-0011, ADR-0012).
 - Lunar calendar core with generated tables and CI checks (ADR-0015).

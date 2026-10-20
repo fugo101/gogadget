@@ -12,6 +12,7 @@
 #define UI_COLOR_TEXT lv_color_hex(0xFFFFFF)
 #define UI_COLOR_TEXT_DIM lv_color_hex(0xA0A0A0)
 #define UI_COLOR_ACCENT lv_color_hex(0x3FA9F5)
+#define UI_COLOR_GHOST lv_color_hex(0x262626) /* unlit seven-segment ghosts, idle track */
 #define UI_COLOR_WARN lv_color_hex(0xFFB000)
 #define UI_COLOR_ERROR lv_color_hex(0xFF4040)
 

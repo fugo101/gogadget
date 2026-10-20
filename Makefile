@@ -55,11 +55,12 @@ test: sim ## Run core unit tests and golden screenshot comparisons
 	ctest --test-dir $(SIM_BUILD) --output-on-failure
 
 golden: ## Re-create every golden screenshot (then review the PNG diff)
-	rm -f $(GOLDEN_DIR)/*.png
 	cmake -S sim -B $(GOLDEN_BUILD) -G Ninja -DGG_GOLDEN_UPDATE=ON -DGG_SIM_VIEWER=OFF \
 		$(if $(wildcard $(SIM_BUILD)/_deps/lvgl-src),-DFETCHCONTENT_SOURCE_DIR_LVGL=$(CURDIR)/$(SIM_BUILD)/_deps/lvgl-src) \
 		$(if $(wildcard $(SIM_BUILD)/_deps/unity-src),-DFETCHCONTENT_SOURCE_DIR_UNITY=$(CURDIR)/$(SIM_BUILD)/_deps/unity-src) >/dev/null
 	cmake --build $(GOLDEN_BUILD) --target test_screens
+	@# Build first, so a compile error never leaves the references deleted.
+	rm -f $(GOLDEN_DIR)/*.png
 	$(GOLDEN_BUILD)/test_screens >/dev/null
 	@# The test module reports success even when it cannot write a reference.
 	@missing=0; for n in $$(grep -o 'expect_screen("[^"]*")' ui/test/test_screens.c | sed 's/expect_screen("\(.*\)")/\1/'); do \

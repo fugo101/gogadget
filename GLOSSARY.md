@@ -69,7 +69,7 @@ The home Screen: time, Solar date, Lunar date and the Status bar.
 _Avoid_: home screen, clock screen
 
 **Status bar**:
-The strip on the Watchface that shows Battery level or USB power, Wi-Fi and Sync state, and a running timer.
+The indicators along the top edge of the Watchface: Battery level or USB power, Wi-Fi and Sync state, and a running timer.
 
 **Menu**:
 The list of features, opened from the Watchface with Enter.

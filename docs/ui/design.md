@@ -26,21 +26,25 @@
 
 ## Watchface v1
 
-Layout regions (landscape, USB left):
+Variant C ("minimal") was chosen on 2026-10-20 from three rendered proposals (`docs/ui/proposals/watchface-v1/`).
 
 ```
 +--------------------------------------------------------------+
-| [battery] [wifi/sync]                       [timer] [badge]   |  status bar, ~20 px
+| [Unsynced badge]                              [wifi] [power]  |  16 px, top corners
 |                                                              |
-|                 HH:MM            ss                           |  time, DSEG7, ~80-96 px
+|          88:88  (DSEG7 88 px; unlit segments drawn faint)    |  HH:MM, white over ghosts
 |                                                              |
-|          Thứ Ba, 20/10/2026        11/9 ÂL                    |  dates, Be Vietnam Pro, ~20-24 px
+|  ============================--------------------------------|  seconds: 3 px accent line
+|              Thứ Ba 20/10  ·  11/9 ÂL                         |  Be Vietnam Pro 20 px
 +--------------------------------------------------------------+
 ```
 
-- The exact composition is chosen from 2-3 rendered variants (PNG) before implementation is finalised.
+- HH:MM uses DSEG7 Classic Bold at 88 px over a faint "88:88" (the unlit segments), which reads as a real seven-segment display. All glyphs share one advance width, so the two layers align when centred.
+- Seconds are a 3 px line under the time: an accent bar over a faint track, `width = track * seconds / 60`.
+- One date line: weekday, day/month, then the lunar day/month with "ÂL"; a leap month adds "N" ("3/6N ÂL"). The year is not shown on the face.
+- Top right: Wi-Fi (only when on; amber when failed) and the power icon (battery level, or USB). Top left: the Unsynced badge.
+- Unknown time (never synced, or lost after an unexpected reset) shows `--:--` over the ghosts, hides the seconds bar and the date, and shows the Unsynced badge.
 - Seconds update every second only while the screen is lit; the rest of the face redraws on change.
-- Unknown time (never synced, or lost after an unexpected reset) shows `--:--` and the Unsynced badge.
 - Always-on: the whole face shifts by 1-2 px every few minutes to limit image retention.
 
 ## Golden screenshots

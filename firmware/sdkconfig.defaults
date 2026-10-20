@@ -1,0 +1,42 @@
+# Gogadget firmware configuration. Only this file (and config/lvgl.defconfig) is
+# committed; the generated sdkconfig is not (ADR-0001). Keep each block's reason.
+
+CONFIG_IDF_TARGET="esp32s3"
+
+# Flash: Winbond 16 MB, QIO at 80 MHz (docs/hardware/t-display-s3.md)
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+
+# Partitions: two OTA slots, core dump, reserved storage (ADR-0013)
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH=y
+
+# Console on the USB-C port (USB-Serial-JTAG); IDF's default is UART0
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# Octal PSRAM without the boot memtest (~735 ms) and without XIP from PSRAM
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+# CONFIG_SPIRAM_MEMTEST is not set
+# CONFIG_SPIRAM_XIP_FROM_PSRAM is not set
+
+# Fast wake from deep sleep (ADR-0009): skip image validation, quiet logs.
+# Log level can be raised per tag at runtime (maximum stays INFO).
+CONFIG_BOOTLOADER_SKIP_VALIDATE_IN_DEEP_SLEEP=y
+CONFIG_BOOTLOADER_LOG_LEVEL_WARN=y
+CONFIG_LOG_DEFAULT_LEVEL_WARN=y
+CONFIG_LOG_MAXIMUM_LEVEL_INFO=y
+
+# CPU and scheduler
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_160=y
+CONFIG_FREERTOS_HZ=1000
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# Brownout reset stays on: Wi-Fi peaks can exceed the 500 mA LDO
+CONFIG_ESP_BROWNOUT_DET=y
+
+# LVGL, device only. LV_ATTRIBUTE_FAST_MEM_USE_IRAM stays off: with GCC 15 it breaks
+# the LVGL 9.6 build (conflicting .iram1.N sections, -Werror=attributes).

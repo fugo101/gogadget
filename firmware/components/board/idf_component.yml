@@ -1,0 +1,7 @@
+## esp_lvgl_port stays inside this component (ADR-0002). LVGL is public because
+## board.h hands out an lv_display_t; keep its pin identical to ui/idf_component.yml.
+dependencies:
+  espressif/esp_lvgl_port: "==2.9.0"
+  lvgl/lvgl:
+    version: "==9.6.0~1"
+    require: public

@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "gg/gg_battery.h"
+#include "gg/gg_lunar.h"
 
 /* Always-on pixel shift pattern: small enough to be invisible, wide enough to
  * keep static edges from sitting on the same pixels for hours. */
@@ -116,12 +117,28 @@ static bool status_equal(const gg_status_t *a, const gg_status_t *b)
            a->unsynced == b->unsynced;
 }
 
+static bool same_date(const gg_civil_t *a, const gg_civil_t *b)
+{
+    return a->year == b->year && a->month == b->month && a->day == b->day;
+}
+
+/* The Lunar date of the clock's Solar date; not valid outside the calendar's range. */
+static void update_lunar(gg_clock_t *c)
+{
+    gg_lunar_date_t l;
+    c->lunar_valid = gg_lunar_from_solar(c->now.year, c->now.month, c->now.day, &l);
+    c->lunar_day = c->lunar_valid ? l.day : 0;
+    c->lunar_month = c->lunar_valid ? l.month : 0;
+    c->lunar_leap = c->lunar_valid && l.leap;
+}
+
 static gg_effects_t handle_time(gg_state_t *s, int64_t epoch_s, bool valid)
 {
     gg_effects_t fx = no_effects();
     if (!valid) {
         if (s->clock.valid) {
             s->clock.valid = false;
+            s->clock.lunar_valid = false;
             fx.render = true;
         }
         return fx;
@@ -129,8 +146,12 @@ static gg_effects_t handle_time(gg_state_t *s, int64_t epoch_s, bool valid)
     gg_civil_t now;
     gg_civil_from_epoch(epoch_s, GG_UTC_OFFSET_S, &now);
     if (!s->clock.valid || !civil_equal(&now, &s->clock.now)) {
+        bool new_date = !s->clock.valid || !same_date(&now, &s->clock.now);
         s->clock.valid = true;
         s->clock.now = now;
+        if (new_date) {
+            update_lunar(&s->clock);
+        }
         fx.render = true;
     }
     return fx;

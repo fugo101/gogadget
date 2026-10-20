@@ -114,6 +114,75 @@ static void test_time_updates_render_only_on_change(void)
     TEST_ASSERT_FALSE(s.clock.valid);
 }
 
+/* Epoch seconds of a Vietnamese local time (UTC+7). */
+static int64_t local_epoch(int32_t y, uint32_t mo, uint32_t d, int h, int mi, int sec)
+{
+    return (int64_t)gg_days_from_civil(y, mo, d) * 86400 + h * 3600 + mi * 60 + sec -
+           GG_UTC_OFFSET_S;
+}
+
+static void post_time(int64_t epoch_s, bool valid)
+{
+    gg_msg_t m = {.kind = GG_MSG_TIME, .time = {.epoch_s = epoch_s, .valid = valid}};
+    gg_app_handle(&s, &m);
+}
+
+static void assert_lunar(uint8_t day, uint8_t month, bool leap)
+{
+    TEST_ASSERT_TRUE(s.clock.lunar_valid);
+    TEST_ASSERT_EQUAL_UINT8(day, s.clock.lunar_day);
+    TEST_ASSERT_EQUAL_UINT8(month, s.clock.lunar_month);
+    TEST_ASSERT_EQUAL(leap, s.clock.lunar_leap);
+}
+
+static void test_time_fills_lunar_date(void)
+{
+    TEST_ASSERT_FALSE(s.clock.lunar_valid);
+    post_time(local_epoch(2026, 10, 20, 14, 35, 42), true); /* ADR-0015 check value */
+    assert_lunar(11, 9, false);
+}
+
+static void test_lunar_date_changes_at_local_midnight(void)
+{
+    post_time(local_epoch(2026, 10, 20, 23, 59, 59), true);
+    assert_lunar(11, 9, false);
+    post_time(local_epoch(2026, 10, 21, 0, 0, 0), true);
+    assert_lunar(12, 9, false);
+    /* Tết 2027: the last day of month 12 (29 days), then day 1 of month 1. */
+    post_time(local_epoch(2027, 2, 5, 23, 59, 59), true);
+    assert_lunar(29, 12, false);
+    post_time(local_epoch(2027, 2, 6, 0, 0, 0), true);
+    assert_lunar(1, 1, false);
+}
+
+static void test_leap_month_sets_flag(void)
+{
+    post_time(local_epoch(2025, 7, 24, 12, 0, 0), true);
+    assert_lunar(30, 6, false);
+    post_time(local_epoch(2025, 7, 27, 12, 0, 0), true); /* leap 6th month from 2025-07-25 */
+    assert_lunar(3, 6, true);
+    post_time(local_epoch(2025, 8, 23, 12, 0, 0), true);
+    assert_lunar(1, 7, false);
+}
+
+static void test_lunar_date_outside_range_is_not_valid(void)
+{
+    post_time(local_epoch(2101, 3, 1, 12, 0, 0), true);
+    TEST_ASSERT_TRUE(s.clock.valid);
+    TEST_ASSERT_FALSE(s.clock.lunar_valid);
+    post_time(local_epoch(2100, 12, 31, 12, 0, 0), true);
+    TEST_ASSERT_TRUE(s.clock.lunar_valid);
+}
+
+static void test_lost_time_clears_lunar_date(void)
+{
+    post_time(local_epoch(2026, 10, 20, 8, 0, 0), true);
+    post_time(0, false);
+    TEST_ASSERT_FALSE(s.clock.lunar_valid);
+    post_time(local_epoch(2026, 10, 20, 8, 0, 1), true); /* the same date again */
+    assert_lunar(11, 9, false);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -125,5 +194,10 @@ int main(void)
     RUN_TEST(test_battery_level_only_on_battery);
     RUN_TEST(test_always_on_pixel_shift);
     RUN_TEST(test_time_updates_render_only_on_change);
+    RUN_TEST(test_time_fills_lunar_date);
+    RUN_TEST(test_lunar_date_changes_at_local_midnight);
+    RUN_TEST(test_leap_month_sets_flag);
+    RUN_TEST(test_lunar_date_outside_range_is_not_valid);
+    RUN_TEST(test_lost_time_clears_lunar_date);
     return UNITY_END();
 }

@@ -1,6 +1,6 @@
 # Keep time with NTP about four times a day, without an external RTC
 
-The board cannot take a 32 kHz crystal (its pins are GPIO15 and GPIO16, both used), so deep-sleep time runs on an internal RC oscillator that drifts with temperature. Gogadget accepts ±1 minute: a screen-off timer wake syncs with NTP about four times a day (about 0.4 mAh/day), the firmware learns the drift between syncs and corrects for it, an "unsynced" badge appears after 24 hours without a sync, and Wi-Fi is not started below about 3.6 V VSYS because the 500 mA LDO browns out under Wi-Fi peaks. Time also syncs on every USB session. The time zone is fixed UTC+7 (Vietnam has no DST), so core converts epoch to local time itself instead of relying on TZ strings.
+The board cannot take a 32 kHz crystal (its pins are GPIO15 and GPIO16, both used), so deep-sleep time runs on an internal RC oscillator that drifts with temperature. Gogadget accepts ±1 minute: a screen-off timer wake syncs with NTP about four times a day (about 1 mAh/day, 0.1-0.4 mAh per Sync; see docs/hardware/power-budget.md), the firmware learns the drift between syncs and corrects for it, an "unsynced" badge appears after 24 hours without a sync, and Wi-Fi is not started below about 3.6 V VSYS because the 500 mA LDO browns out under Wi-Fi peaks. Time also syncs on every USB session. The time zone is fixed UTC+7 (Vietnam has no DST), so core converts epoch to local time itself instead of relying on TZ strings.
 
 ## Considered options
 

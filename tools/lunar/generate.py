@@ -387,14 +387,35 @@ def check_rules(months: list[Month], events: list[Event], zone: str) -> None:
             before = ms[ms.index(m) - 1]
             if before.month != m.month or before.leap:
                 raise RuntimeError(f"{m} does not follow the month it repeats")
-    # Where exactly a zone switches must not matter: an event near a switch has to
-    # fall on the same date under the offsets on both sides of it.
-    for e in events:
-        for switch, offsets in ((VN_SWITCH_S, (8, 7)), (CN_SWITCH_S, (BEIJING_MEAN_S / HOUR_S, 8))):
-            if abs(e.civil_s - switch) < 2 * DAY_S:
-                dates = {math.floor((e.civil_s + h * HOUR_S) / DAY_S) for h in offsets}
-                if len(dates) > 1:
-                    raise RuntimeError(f"{e.name} at {e.when(zone)}: the zone switch decides its date")
+    # Where exactly a zone switches must not matter within a day or two: the nearest
+    # event whose date depends on the offset must be further away than that.
+    for switch, before, after in SWITCHES:
+        lo, hi = switch_window(events, switch, before, after)
+        if switch - lo < 2 * DAY_S or hi - switch < 2 * DAY_S:
+            raise RuntimeError(f"an event within 2 days of the switch at {ut_text(switch)}")
+
+
+# The zone switches: (instant, UTC offset before, UTC offset after).
+SWITCHES = ((VN_SWITCH_S, 8 * HOUR_S, 7 * HOUR_S), (CN_SWITCH_S, BEIJING_MEAN_S, 8 * HOUR_S))
+
+
+def switch_window(events: list[Event], switch: float, before: int, after: int):
+    """(lo, hi): the months and terms stay the same for any switch instant in (lo, hi].
+
+    lo and hi are the nearest events before and after the switch that fall on another
+    local date under the other offset. Moving the switch to lo or earlier changes the
+    date of the event at lo; moving it past hi changes the one at hi.
+    """
+    def moves(e: Event) -> bool:
+        return math.floor((e.civil_s + before) / DAY_S) != math.floor((e.civil_s + after) / DAY_S)
+
+    lo = max(e.civil_s for e in events if e.civil_s < switch and moves(e))
+    hi = min(e.civil_s for e in events if e.civil_s >= switch and moves(e))
+    return lo, hi
+
+
+def ut_text(civil_s: float) -> str:
+    return (dt.datetime(1970, 1, 1) + dt.timedelta(seconds=math.floor(civil_s))).isoformat(" ") + " UT"
 
 
 # ---- Tables ----------------------------------------------------------------------
@@ -714,6 +735,13 @@ def main() -> int:
         f"lunar years {FIRST_YEAR}-{LAST_YEAR}",
         file=sys.stderr,
     )
+
+    if args.zone == "vn":
+        # The tables put the switch at 1968-01-01 (docs/lunar.md, Time); any switch in
+        # this window gives the same tables.
+        lo, hi = switch_window(events, *SWITCHES[0])
+        print(f"zone switch: the same tables for a switch after {ut_text(lo)} and up to "
+              f"{ut_text(hi)}", file=sys.stderr)
 
     status = 0
     report_only = args.compare_hko or args.margins is not None or args.sensitivity

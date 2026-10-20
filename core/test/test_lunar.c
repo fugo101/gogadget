@@ -27,6 +27,7 @@ enum {
     LAP_THU = 9,
     HAN_LO = 13,
     DONG_CHI = 18,
+    VU_THUY = 22,
     KINH_TRAP = 23,
 };
 
@@ -193,6 +194,16 @@ static void test_knife_edge_months(void)
     TEST_ASSERT_EQUAL_STRING("2085-10-19", month_start(2085, 9, false));  /* 00:01:15.94, +75.9 s */
 }
 
+static void test_zone_switch(void)
+{
+    /* UTC+7 from 1968-01-01 (docs/lunar.md, Time). The nearest new moons whose date
+     * depends on the zone: 1967 month 11 (00:09:39 on 2/12 in UTC+8, 23:09:39 on 1/12 in
+     * UTC+7) and Tết 1968 (00:29:10 on 30/1 in UTC+8, 23:29:10 on 29/1 in UTC+7). A
+     * switch on the decree date (1967-08-08) would start month 11 on 1967-12-01. */
+    TEST_ASSERT_EQUAL_STRING("1967-12-02", month_start(1967, 11, false));
+    TEST_ASSERT_EQUAL_STRING("1968-01-29", month_start(1968, 1, false));
+}
+
 static void test_knife_edge_solar_terms(void)
 {
     /* Solar terms within 25 s of local midnight (UTC+7, or UTC+8 before 1968). */
@@ -200,6 +211,7 @@ static void test_knife_edge_solar_terms(void)
     assert_term_begins(LAP_THU, 2060, 8, 6);    /* 23:59:37.79, -22.2 s */
     assert_term_begins(HAN_LO, 2098, 10, 7);    /* 23:59:50.09, -9.9 s */
     assert_term_begins(LAP_HA, 1911, 5, 7);     /* 00:00:16.02, +16.0 s */
+    assert_term_begins(VU_THUY, 1923, 2, 19);   /* 23:59:40.31, -19.7 s */
     assert_term_begins(DONG_CHI, 1951, 12, 23); /* 00:00:01.53 in UT1, +1.5 s; HKO agrees.
                                                  * TAI - 10 s as "UTC" would give 22/12. */
 }
@@ -573,6 +585,7 @@ int main(void)
     RUN_TEST(test_tet_where_vietnam_and_china_differ);
     RUN_TEST(test_leap_months);
     RUN_TEST(test_knife_edge_months);
+    RUN_TEST(test_zone_switch);
     RUN_TEST(test_knife_edge_solar_terms);
     RUN_TEST(test_solar_terms);
     RUN_TEST(test_can_chi);

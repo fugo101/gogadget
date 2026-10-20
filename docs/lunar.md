@@ -26,7 +26,7 @@ Two consequences are tested on every table: months have 29 or 30 days and years 
 
 ## Time
 
-**Zones.** Dates are local: UTC+8 for instants before 1968-01-01 00:00 Hanoi time and UTC+7 from then on, the calendar of the North under Decision 121-CP (8 August 1967). Calendrical Calculations encodes Hanoi the same way. No new moon or solar term falls near the switch on a date the switch could change (the generator checks this).
+**Zones.** Dates are local: UTC+8 for instants before 1968-01-01 00:00 Hanoi time and UTC+7 from then on, the calendar of the North under Decision 121-CP (8 August 1967). Calendrical Calculations encodes Hanoi the same way. The switch date matters for two new moons, the nearest on either side whose date depends on the zone: 1967 month 11 (16:09:39 UT on 1 December 1967: 00:09 on 2/12 in UTC+8, 23:09 on 1/12 in UTC+7) and Tết 1968 (16:29:10 UT on 29 January 1968). Any switch after the first and up to the second gives the same tables, which start 1967 month 11 on 2/12 and Tết 1968 on 29/1; had UTC+7 applied from the decree date (8 August 1967), 1967 month 11 would start on 1 December. The decree's text is unverified; both sources in the research put the switch at the end of 1967 (histcal: the North used UTC+8 until 1967; Calendrical Calculations: UTC+7 from the Gregorian new year 1968). `generate.py` prints this window and fails if an event lies within two days of the switch; `test_zone_switch` pins both months.
 
 - The South kept UTC+8 until 1975. Its calendar therefore differs from these tables in 1968 month 1 (Tết on 30 January, not 29), 1969 month 1 (Tết 17 February, not 16), 1974 month 11 and 1975 month 3. The tables hold the North's calendar.
 - Before 1929 the Chinese calendar, which Vietnam followed until 1945, was computed on Beijing mean time (UT+7:45:40), not UTC+8. ADR-0015 fixes UTC+8 for all years before 1968, so the tables differ from the historical calendar in three months: 1914 month 10 (starts 18/11 instead of 17/11), 1916 month 1 (Tết 4/2 instead of 3/2) and 1920 month 10 (11/11 instead of 10/11). See the open questions.
@@ -196,7 +196,7 @@ Events close to local midnight, from `generate.py --margins 120` (time truncated
 | Đại tuyết 1917 | 1917-12-08 00:00:59.4 UTC+8 | +59.5 s | HKO: 7/12 (Beijing mean time) |
 | Mang chủng 2080 | 2080-06-04 23:58:56.7 | -63.2 s | |
 
-Further events within 120 s: Bạch lộ 2014 (+86.0 s), Tiểu thử 2041 (-87.0 s), Tiểu mãn 1917 (-88.9 s), Xử thử 2074 (+90.5 s), Hàn lộ 1970 (+92.4 s), Kinh trập 2076 (+114.7 s). The next new moons after the four knife-edge months are 2062-12-30 (-149.0 s) and 2078-11-04 (-159.6 s). The tests pin the four months and five of the solar terms.
+Further events within 120 s: Bạch lộ 2014 (+86.0 s), Tiểu thử 2041 (-87.0 s), Tiểu mãn 1917 (-88.9 s), Xử thử 2074 (+90.5 s), Hàn lộ 1970 (+92.4 s), Kinh trập 2076 (+114.7 s). The next new moons after the four knife-edge months are 2062-12-30 (-149.0 s) and 2078-11-04 (-159.6 s). The tests pin the four months and the six solar terms within 25 s of midnight.
 
 ### Host tests
 

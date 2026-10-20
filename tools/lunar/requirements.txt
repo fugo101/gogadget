@@ -1,0 +1,7 @@
+# Exact pins for tools/lunar (see README.md). Python 3.14.
+# A change here can change the generated tables: regenerate and review the diff.
+certifi==2026.10.19
+jplephem==2.24
+numpy==2.5.4
+sgp4==2.27
+skyfield==1.55

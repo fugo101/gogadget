@@ -71,11 +71,13 @@ add_subdirectory(${GG_ROOT}/ui ${CMAKE_BINARY_DIR}/ui)
 
 enable_testing()
 
-foreach(name input civil battery app)
+foreach(name input civil battery app lunar)
     add_executable(test_${name} ${GG_ROOT}/core/test/test_${name}.c)
     target_link_libraries(test_${name} PRIVATE gg_core unity gg_warnings)
     add_test(NAME core_${name} COMMAND test_${name})
 endforeach()
+# The lunar tests read the generated and the HKO-derived month lists (docs/lunar.md).
+target_compile_definitions(test_lunar PRIVATE GG_TEST_DATA_DIR="${GG_ROOT}/core/test/data/")
 
 add_executable(test_screens ${GG_ROOT}/ui/test/test_screens.c)
 target_link_libraries(test_screens PRIVATE gg_ui unity gg_warnings)

@@ -44,6 +44,7 @@ A pocket gadget on a [LilyGO T-Display S3](https://github.com/Xinyuan-LilyGO/T-D
 - [docs/adr/](docs/adr/): architecture decisions and why they were made.
 - [docs/hardware/](docs/hardware/): board reference, power budget, bring-up tests.
 - [docs/ui/design.md](docs/ui/design.md): screen layout, fonts, palette.
+- [docs/lunar.md](docs/lunar.md): how the lunar calendar is computed, regenerated and verified.
 - [docs/research/](docs/research/): the research behind the decisions.
 
 ## License

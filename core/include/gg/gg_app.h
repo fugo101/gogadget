@@ -43,10 +43,12 @@ typedef enum {
 typedef struct {
     bool valid;     /* false until the first Sync (or after a lost time) */
     gg_civil_t now; /* local civil time */
+    /* The Lunar date of .now (gg_lunar.h), recomputed when the date changes; not valid
+     * while .valid is false or outside the calendar's range. */
     bool lunar_valid;
     uint8_t lunar_day;
     uint8_t lunar_month;
-    bool lunar_leap;
+    bool lunar_leap; /* a day of the leap month that repeats .lunar_month */
 } gg_clock_t;
 
 typedef struct {

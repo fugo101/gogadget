@@ -12,10 +12,10 @@
 
 static gg_state_t s;
 
-/* Tuesday 2026-10-20 14:35:42 in Vietnam; lunar 11/9 (ADR-0015 check value). */
-static int64_t fixture_epoch(void)
+/* 14:35:42 in Vietnam on a Solar date; the reducer computes the Lunar date. */
+static int64_t fixture_epoch(int32_t year, uint32_t month, uint32_t day)
 {
-    return (int64_t)gg_days_from_civil(2026, 10, 20) * 86400 + 7 * 3600 + 35 * 60 + 42;
+    return (int64_t)gg_days_from_civil(year, month, day) * 86400 + 7 * 3600 + 35 * 60 + 42;
 }
 
 static void post(gg_msg_t m)
@@ -23,16 +23,19 @@ static void post(gg_msg_t m)
     gg_app_handle(&s, &m);
 }
 
+static void post_date(int32_t year, uint32_t month, uint32_t day)
+{
+    post((gg_msg_t){.kind = GG_MSG_TIME,
+                    .time = {.epoch_s = fixture_epoch(year, month, day), .valid = true}});
+}
+
 void setUp(void)
 {
     gg_app_config_t cfg = GG_APP_CONFIG_DEFAULT;
     gg_app_init(&s, &cfg, false, 0);
-    post((gg_msg_t){.kind = GG_MSG_TIME, .time = {.epoch_s = fixture_epoch(), .valid = true}});
+    post_date(2026, 10, 20); /* Tuesday; lunar 11/9 (ADR-0015 check value) */
     post((gg_msg_t){.kind = GG_MSG_POWER, .power = {.usb = false, .vsys_mv = 3950}});
     post((gg_msg_t){.kind = GG_MSG_NET, .net = {.wifi = GG_WIFI_OFF, .unsynced = false}});
-    s.clock.lunar_valid = true;
-    s.clock.lunar_day = 11;
-    s.clock.lunar_month = 9;
 }
 
 void tearDown(void)
@@ -68,9 +71,8 @@ static void test_watchface_usb_wifi(void)
 
 static void test_watchface_leap_month(void)
 {
-    s.clock.lunar_day = 3;
-    s.clock.lunar_month = 6;
-    s.clock.lunar_leap = true;
+    post_date(2025, 7, 27); /* Sunday; day 3 of the leap 6th month of Ất Tỵ */
+    TEST_ASSERT_TRUE(s.clock.lunar_leap);
     expect_screen("watchface-leap-month");
 }
 

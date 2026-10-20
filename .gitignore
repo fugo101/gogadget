@@ -25,6 +25,7 @@ backups/
 compile_commands.json
 __pycache__/
 tools/fonts/node_modules/
+tools/lunar/.venv/
 
 # Editors and OS
 .DS_Store

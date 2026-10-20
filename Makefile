@@ -92,3 +92,10 @@ check: format-check secrets versions test fw ## Everything CI runs
 
 fonts: ## Regenerate ui/fonts from tools/fonts (needs Node.js)
 	tools/fonts/generate.sh
+
+LUNAR_PYTHON := tools/lunar/.venv/bin/python
+
+.PHONY: lunar-check
+lunar-check: ## Fail if the generated lunar tables are stale (needs tools/lunar/.venv)
+	@if [ -x "$(LUNAR_PYTHON)" ]; then $(LUNAR_PYTHON) -I tools/lunar/generate.py --check; \
+	else echo "lunar-check: no $(LUNAR_PYTHON); set it up as in tools/lunar/README.md" >&2; exit 1; fi

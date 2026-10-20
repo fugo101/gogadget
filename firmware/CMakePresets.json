@@ -10,7 +10,27 @@
       "name": "default",
       "displayName": "Firmware",
       "description": "idf.py picks the 'default' preset whenever this file exists. A relative binaryDir (idf.py does not expand ${sourceDir}) keeps the plain layout, build/ and sdkconfig in firmware/, that the Makefile, CI and .clangd use. Written on purpose so the ESP-IDF extension does not generate its own template here.",
-      "binaryDir": "build"
+      "binaryDir": "build",
+      "cacheVariables": {
+        "IDF_TARGET": "esp32s3"
+      },
+      "vendor": {
+        "espressif/vscode-esp-idf": {
+          "schemaVersion": 1,
+          "settings": [
+            {
+              "type": "openOCD",
+              "value": {
+                "debugLevel": 2,
+                "configs": [
+                  "board/esp32s3-builtin.cfg"
+                ],
+                "args": []
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }

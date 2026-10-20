@@ -48,20 +48,23 @@ typedef struct {
 } gg_can_chi_t;
 
 /* Lunar year Y: stem (Y + 6) mod 10, branch (Y + 8) mod 12; year 4 was Giáp Tý and 2026
- * is Bính Ngọ. */
+ * is Bính Ngọ. Defined for every int32_t year. */
 gg_can_chi_t gg_lunar_can_chi_year(int32_t lunar_year);
 
 /*
  * Month M of lunar year Y: branch (M + 1) mod 12, so month 1 is Dần and month 11 Tý. The
  * months count through the pairs 12 a year, so the stem is (12 Y + M + 3) mod 10, which
  * makes month 1 of a Giáp or Kỷ year Bính Dần. A leap month has no pair of its own and
- * reuses the one of the month it repeats, as Vietnamese almanacs print it.
+ * reuses the one of the month it repeats, as Vietnamese almanacs print it. False unless
+ * the year is in the tables and the month is 1-12.
  */
-gg_can_chi_t gg_lunar_can_chi_month(int32_t lunar_year, uint8_t month);
+bool gg_lunar_can_chi_month(int32_t lunar_year, uint8_t month, gg_can_chi_t *out);
 
 /* A day, given as its Solar date: with J its Julian Day Number, stem (J + 9) mod 10 and
- * branch (J + 1) mod 12; 2000-01-01 (J = 2451545) was Mậu Ngọ. */
-gg_can_chi_t gg_lunar_can_chi_day(int32_t year, uint8_t month, uint8_t day);
+ * branch (J + 1) mod 12; 2000-01-01 (J = 2451545) was Mậu Ngọ. False unless the date
+ * exists and its year is GG_LUNAR_FIRST_YEAR-GG_LUNAR_LAST_YEAR (also 1-30 January 1900,
+ * before the conversions' range). */
+bool gg_lunar_can_chi_day(int32_t year, uint8_t month, uint8_t day, gg_can_chi_t *out);
 
 /*
  * Solar terms (tiết khí): term k begins on the local date on which the Sun's apparent

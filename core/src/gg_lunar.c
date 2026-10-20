@@ -54,11 +54,17 @@ static int32_t last_day(void)
     return gg_days_from_civil(GG_LUNAR_LAST_YEAR, 12, 31);
 }
 
+/* A Solar date that exists, in a year of the tables. */
+static bool valid_solar(int32_t year, uint8_t month, uint8_t day)
+{
+    return in_tables(year) && month >= 1 && month <= 12 && day >= 1 &&
+           day <= gg_days_in_month(year, month);
+}
+
 /* Days since 1970-01-01 of a valid Solar date inside the supported range. */
 static bool solar_days(int32_t year, uint8_t month, uint8_t day, int32_t *out)
 {
-    if (year < GG_LUNAR_FIRST_YEAR || year > GG_LUNAR_LAST_YEAR || month < 1 || month > 12 ||
-        day < 1 || day > gg_days_in_month(year, month)) {
+    if (!valid_solar(year, month, day)) {
         return false;
     }
     *out = gg_days_from_civil(year, month, day);
@@ -142,16 +148,24 @@ gg_can_chi_t gg_lunar_can_chi_year(int32_t lunar_year)
                           .branch = mod((int64_t)lunar_year + 8, 12)};
 }
 
-gg_can_chi_t gg_lunar_can_chi_month(int32_t lunar_year, uint8_t month)
+bool gg_lunar_can_chi_month(int32_t lunar_year, uint8_t month, gg_can_chi_t *out)
 {
-    return (gg_can_chi_t){.stem = mod(12 * (int64_t)lunar_year + month + 3, 10),
+    if (!in_tables(lunar_year) || month < 1 || month > 12) {
+        return false;
+    }
+    *out = (gg_can_chi_t){.stem = mod(12 * (int64_t)lunar_year + month + 3, 10),
                           .branch = mod(month + 1, 12)};
+    return true;
 }
 
-gg_can_chi_t gg_lunar_can_chi_day(int32_t year, uint8_t month, uint8_t day)
+bool gg_lunar_can_chi_day(int32_t year, uint8_t month, uint8_t day, gg_can_chi_t *out)
 {
+    if (!valid_solar(year, month, day)) {
+        return false;
+    }
     int64_t jdn = (int64_t)gg_days_from_civil(year, month, day) + JDN_1970_01_01;
-    return (gg_can_chi_t){.stem = mod(jdn + 9, 10), .branch = mod(jdn + 1, 12)};
+    *out = (gg_can_chi_t){.stem = mod(jdn + 9, 10), .branch = mod(jdn + 1, 12)};
+    return true;
 }
 
 /* Day of month of the solar term at a date-order position of a Gregorian year. */

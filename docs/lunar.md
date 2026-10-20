@@ -62,7 +62,7 @@ The search window is wider than the tables: month 11 of 1899 precedes Tết 1900
 
 The interface (`gg_lunar.h`) converts both ways, gives the leap month and month lengths, the Can Chi of a year, month or day, and the solar term in effect on a date. Conversions cover the Solar dates from Tết 1900 (1900-01-31) to 2100-12-31 and return false outside them; 1-30 January 1900 belong to lunar year 1899, which the tables do not hold. A conversion walks at most 13 month lengths, so it takes constant time. The reducer (`gg_app.c`) recomputes the Lunar date whenever the date in a TIME message changes.
 
-**Can Chi.** Stems Giáp ... Quý are 0-9 and branches Tý ... Hợi 0-11.
+**Can Chi.** Stems Giáp ... Quý are 0-9 and branches Tý ... Hợi 0-11. The year's pair is defined for any year; the month's needs a lunar year of the tables and a month 1-12, and the day's a Solar date that exists in 1900-2100, or the functions return false.
 
 | | Stem | Branch | Check |
 |---|---|---|---|

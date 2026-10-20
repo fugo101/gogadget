@@ -108,6 +108,20 @@ static void assert_can_chi(uint8_t stem, uint8_t branch, gg_can_chi_t cc)
     TEST_ASSERT_EQUAL_UINT8(branch, cc.branch);
 }
 
+static gg_can_chi_t month_can_chi(int32_t lunar_year, uint8_t month)
+{
+    gg_can_chi_t cc;
+    TEST_ASSERT_TRUE(gg_lunar_can_chi_month(lunar_year, month, &cc));
+    return cc;
+}
+
+static gg_can_chi_t day_can_chi(int32_t y, uint8_t m, uint8_t d)
+{
+    gg_can_chi_t cc;
+    TEST_ASSERT_TRUE(gg_lunar_can_chi_day(y, m, d, &cc));
+    return cc;
+}
+
 static void assert_term_begins(uint8_t term, int32_t y, uint8_t m, uint8_t d)
 {
     gg_solar_term_t t;
@@ -132,8 +146,8 @@ static void test_check_value(void)
      * month. */
     assert_lunar(2026, 9, 11, false, 2026, 10, 20);
     assert_can_chi(BINH, NGO, gg_lunar_can_chi_year(2026));
-    assert_can_chi(MAU, TUAT, gg_lunar_can_chi_month(2026, 9));
-    assert_can_chi(DINH, MAO, gg_lunar_can_chi_day(2026, 10, 20));
+    assert_can_chi(MAU, TUAT, month_can_chi(2026, 9));
+    assert_can_chi(DINH, MAO, day_can_chi(2026, 10, 20));
 }
 
 static void test_tet_where_vietnam_and_china_differ(void)
@@ -237,21 +251,40 @@ static void test_solar_terms(void)
 
 static void test_can_chi(void)
 {
-    assert_can_chi(MAU, NGO, gg_lunar_can_chi_day(2000, 1, 1));    /* JDN 2451545 */
-    assert_can_chi(DINH, MAO, gg_lunar_can_chi_day(2026, 12, 19)); /* 60 days after the check */
+    assert_can_chi(MAU, NGO, day_can_chi(2000, 1, 1));    /* JDN 2451545 */
+    assert_can_chi(DINH, MAO, day_can_chi(2026, 12, 19)); /* 60 days after the check */
     assert_can_chi(GIAP, TY, gg_lunar_can_chi_year(1984));
     assert_can_chi(CANH, TY, gg_lunar_can_chi_year(1900));
     assert_can_chi(CANH, THAN, gg_lunar_can_chi_year(2100));
     /* Month 1 of a Giáp or Kỷ year is Bính Dần, of an Ất year Mậu Dần; month 11 is Tý. */
-    assert_can_chi(BINH, DAN, gg_lunar_can_chi_month(1984, 1));
-    assert_can_chi(BINH, DAN, gg_lunar_can_chi_month(1989, 1));
-    assert_can_chi(MAU, DAN, gg_lunar_can_chi_month(1985, 1));
-    TEST_ASSERT_EQUAL_UINT8(TY, gg_lunar_can_chi_month(2026, 11).branch);
+    assert_can_chi(BINH, DAN, month_can_chi(1984, 1));
+    assert_can_chi(BINH, DAN, month_can_chi(1989, 1));
+    assert_can_chi(MAU, DAN, month_can_chi(1985, 1));
+    TEST_ASSERT_EQUAL_UINT8(TY, month_can_chi(2026, 11).branch);
     /* The months run on across the new year: Tân Sửu, then Nhâm Dần. */
-    assert_can_chi(TAN, SUU, gg_lunar_can_chi_month(2026, 12));
-    assert_can_chi(NHAM, DAN, gg_lunar_can_chi_month(2027, 1));
+    assert_can_chi(TAN, SUU, month_can_chi(2026, 12));
+    assert_can_chi(NHAM, DAN, month_can_chi(2027, 1));
     /* The leap 6th month of 2025 reuses month 6's Quý Mùi. */
-    assert_can_chi(QUY, MUI, gg_lunar_can_chi_month(2025, 6));
+    assert_can_chi(QUY, MUI, month_can_chi(2025, 6));
+    /* Days before Tết 1900 have a Can Chi too: 1900-01-01 (JDN 2415021) was Giáp Tuất. */
+    assert_can_chi(GIAP, TUAT, day_can_chi(1900, 1, 1));
+    assert_can_chi(GIAP, THAN, month_can_chi(2100, 7)); /* a Canh year: month 1 Mậu Dần */
+}
+
+static void test_can_chi_rejects_invalid_input(void)
+{
+    gg_can_chi_t cc;
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_day(2026, 2, 30, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_day(2026, 0, 1, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_day(2026, 13, 1, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_day(2026, 1, 0, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_day(1899, 12, 31, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_day(2101, 1, 1, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_day(INT32_MAX, 1, 1, &cc)); /* no int32 overflow */
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_month(2026, 0, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_month(2026, 13, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_month(1899, 1, &cc));
+    TEST_ASSERT_FALSE(gg_lunar_can_chi_month(2101, 1, &cc));
 }
 
 static void test_range_edges(void)
@@ -725,6 +758,7 @@ int main(void)
     RUN_TEST(test_knife_edge_solar_terms);
     RUN_TEST(test_solar_terms);
     RUN_TEST(test_can_chi);
+    RUN_TEST(test_can_chi_rejects_invalid_input);
     RUN_TEST(test_range_edges);
     RUN_TEST(test_round_trip_every_day);
     RUN_TEST(test_months_and_years_have_valid_lengths);

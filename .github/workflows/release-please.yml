@@ -5,17 +5,28 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release-please:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      # GITHUB_TOKEN keeps this simple; the release PR it opens does not trigger
-      # CI by itself (GitHub rule). CI still runs on main after the merge.
+      # The fugo101 organization does not let GITHUB_TOKEN open pull requests, so the
+      # release PR is opened by the org's release GitHub App (org secrets). A bonus:
+      # PRs opened by an app token trigger CI, unlike those opened by GITHUB_TOKEN.
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - uses: googleapis/release-please-action@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json

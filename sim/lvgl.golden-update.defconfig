@@ -1,0 +1,2 @@
+# Used only by `make golden`: create reference images that do not exist yet.
+CONFIG_LV_TEST_SCREENSHOT_CREATE_REFERENCE_IMAGE=y

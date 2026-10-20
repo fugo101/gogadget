@@ -1,0 +1,2 @@
+# Interactive SDL window (sim viewer). Added only when SDL2 is found.
+CONFIG_LV_USE_SDL=y

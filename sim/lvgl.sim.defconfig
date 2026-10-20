@@ -1,0 +1,11 @@
+# Simulator-only LVGL options, merged after config/lvgl.defconfig.
+# Screenshot compare allocates a 32-bit copy of the frame from the LVGL pool.
+CONFIG_LV_MEM_SIZE=4194304
+CONFIG_LV_USE_TEST=y
+# Reference PNGs are read and written through lv_fs: stdio on drive 'A', used by default.
+CONFIG_LV_USE_FS_STDIO=y
+CONFIG_LV_FS_STDIO_LETTER=65
+CONFIG_LV_FS_DEFAULT_DRIVER_LETTER=65
+CONFIG_LV_USE_TEST_SCREENSHOT_COMPARE=y
+# Missing reference images fail; `make golden` creates them on purpose (ADR-0005).
+# CONFIG_LV_TEST_SCREENSHOT_CREATE_REFERENCE_IMAGE is not set

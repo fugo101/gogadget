@@ -1,0 +1,3 @@
+# Partition the 16 MB flash for OTA with rollback, a core dump and reserved storage
+
+The partition table is `nvs` 64 KB, `otadata`, `phy_init`, two 4 MB app slots, a 256 KB core dump and a `storage` LittleFS partition that takes the rest (about 7 MB, unused at first). Changing a partition table later requires a USB reflash and erases data, so the layout reserves room now: OTA with rollback needs two slots from day one (a new image marks itself valid before its first deep sleep), the core dump turns field crashes into backtraces (zen-clock's LVGL task overflowed its stack with no record), and the storage partition leaves space for logs, assets or user data without another reflash.

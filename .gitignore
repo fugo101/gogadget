@@ -1,0 +1,34 @@
+# Build outputs
+build/
+firmware/build/
+sim/build*/
+*.elf
+*.map
+
+# ESP-IDF: generated config and downloaded components (see docs/adr/0001)
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/managed_components/
+firmware/dependencies.lock.bak
+
+# Golden screenshot mismatches written by the LVGL test module
+*_err.png
+
+# Local-only material: Wi-Fi credentials, flash backups (never commit)
+secrets/
+backups/
+*.local
+*.local.*
+
+# Tooling caches
+.cache/
+compile_commands.json
+__pycache__/
+tools/fonts/node_modules/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

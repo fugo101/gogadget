@@ -34,3 +34,6 @@ tools/fonts/node_modules/
 !.vscode/settings.json
 # State the ESP-IDF extension writes for the firmware folder (idf.currentSetup, port, ...)
 firmware/.vscode/
+# The ESP-IDF extension also generates a coarse clangd config here (removes every -f*/-m*
+# flag, e.g. -funsigned-char); the root .clangd is the one to use.
+firmware/.clangd

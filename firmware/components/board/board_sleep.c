@@ -16,13 +16,14 @@ typedef struct {
     uint8_t level;
 } parked_pin_t;
 
-/* CS, RD, WR and RST idle HIGH; DC and the data bus LOW (never hold the
- * strapping pins GPIO45/46 HIGH). GPIO38 needs nothing: the AW9364 pulls EN down. */
+/* V3V rail off first, then CS, RD, WR and RST idle HIGH; DC and the data bus LOW
+ * (never hold the strapping pins GPIO45/46 HIGH). GPIO38 needs nothing: the
+ * AW9364 pulls EN down. */
 static const parked_pin_t k_parked[] = {
-    {BOARD_PIN_LCD_CS, 1}, {BOARD_PIN_LCD_RD, 1},   {BOARD_PIN_LCD_WR, 1}, {BOARD_PIN_LCD_RST, 1},
-    {BOARD_PIN_LCD_DC, 0}, {BOARD_PIN_LCD_D0, 0},   {BOARD_PIN_LCD_D1, 0}, {BOARD_PIN_LCD_D2, 0},
-    {BOARD_PIN_LCD_D3, 0}, {BOARD_PIN_LCD_D4, 0},   {BOARD_PIN_LCD_D5, 0}, {BOARD_PIN_LCD_D6, 0},
-    {BOARD_PIN_LCD_D7, 0}, {BOARD_PIN_POWER_EN, 0},
+    {BOARD_PIN_POWER_EN, 0}, {BOARD_PIN_LCD_CS, 1}, {BOARD_PIN_LCD_RD, 1}, {BOARD_PIN_LCD_WR, 1},
+    {BOARD_PIN_LCD_RST, 1},  {BOARD_PIN_LCD_DC, 0}, {BOARD_PIN_LCD_D0, 0}, {BOARD_PIN_LCD_D1, 0},
+    {BOARD_PIN_LCD_D2, 0},   {BOARD_PIN_LCD_D3, 0}, {BOARD_PIN_LCD_D4, 0}, {BOARD_PIN_LCD_D5, 0},
+    {BOARD_PIN_LCD_D6, 0},   {BOARD_PIN_LCD_D7, 0},
 };
 
 #define BUTTON_MASK ((1ULL << BOARD_PIN_BUTTON_KEY) | (1ULL << BOARD_PIN_BUTTON_BOOT))

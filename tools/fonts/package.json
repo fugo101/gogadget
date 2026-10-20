@@ -1,0 +1,9 @@
+{
+  "name": "gogadget-fonts",
+  "private": true,
+  "description": "Pinned font converter for Gogadget's LVGL fonts (see tools/fonts/generate.sh)",
+  "license": "MIT",
+  "devDependencies": {
+    "lv_font_conv": "1.5.3"
+  }
+}

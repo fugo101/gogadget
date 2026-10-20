@@ -1,0 +1,6 @@
+## LVGL is pinned exactly: golden screenshots depend on it (ADR-0002).
+## sim/CMakeLists.txt fetches the same release; CI checks the two agree.
+dependencies:
+  lvgl/lvgl:
+    version: "==9.6.0~1"
+    require: public
